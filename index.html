@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EduDiário — ERP Escolar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: barra superior com perfis; à esquerda turmas/aulas, à direita o trabalho do dia. */
+  --ink:#16223b;
+  --paper:#f4f5f2;
+  --surface:#ffffff;
+  --line:#dfe2dc;
+  --muted:#5d6676;
+  --accent:#1f6f6a;
+  --accent-soft:#e2f0ee;
+  --mark:#d98e1c;
+  --mark-soft:#fbf0dc;
+  --ok:#2f7d3e; --ok-soft:#e5f3e7;
+  --bad:#b33a2e; --bad-soft:#f8e4e1;
+  --font-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-doc:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --radius:10px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#e7ebf2; --paper:#11161f; --surface:#19202b; --line:#2b3442; --muted:#9aa4b4;
+    --accent:#5cc2b8; --accent-soft:#16312f; --mark:#f0b04a; --mark-soft:#3a2c14;
+    --ok:#6fc27f; --ok-soft:#183020; --bad:#f08a7e; --bad-soft:#3b1c19; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#e7ebf2; --paper:#11161f; --surface:#19202b; --line:#2b3442; --muted:#9aa4b4;
+  --accent:#5cc2b8; --accent-soft:#16312f; --mark:#f0b04a; --mark-soft:#3a2c14;
+  --ok:#6fc27f; --ok-soft:#183020; --bad:#f08a7e; --bad-soft:#3b1c19; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;font-weight:700;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:flex;flex-direction:column;min-height:100%}
+.topbar{display:flex;align-items:center;gap:16px;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;margin-right:8px}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:var(--surface);font-family:var(--font-display);font-weight:700}
+.brand b{font-family:var(--font-display);font-size:18px}
+.brand small{display:block;color:var(--muted);font-size:12px;line-height:1}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{border:0;background:transparent;padding:8px 12px;border-radius:8px;color:var(--muted);font-weight:600;display:flex;gap:6px;align-items:center}
+.tab:hover{background:var(--paper);color:var(--ink)}
+.tab[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.badge{background:var(--mark);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:700}
+.spacer{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+main{flex:1;padding:20px;max-width:1280px;width:100%;margin:0 auto}
+.demo-note{background:var(--mark-soft);border:1px solid color-mix(in srgb,var(--mark) 40%,transparent);padding:10px 14px;border-radius:var(--radius);margin-bottom:16px;font-size:14px}
+.layout{display:grid;grid-template-columns:290px 1fr;gap:20px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.panel-h{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.panel-h h2{font-size:17px}
+.panel-b{padding:16px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.side-sec{padding:12px 12px 4px}
+.select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+.turma{margin:10px 0 4px;font-weight:700;font-size:14px;padding:0 4px}
+.turma span{color:var(--muted);font-weight:500}
+.aula-item{display:grid;grid-template-columns:48px 1fr;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:transparent;padding:8px;border-radius:8px;margin-bottom:2px}
+.aula-item:hover{background:var(--paper)}
+.aula-item[aria-current="true"]{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.date-chip{font-family:var(--font-display);text-align:center;line-height:1.05;border-radius:8px;background:var(--paper);padding:5px 0;font-size:18px;font-weight:700}
+.date-chip small{display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-family:var(--font-body);font-weight:700;letter-spacing:.05em}
+.aula-item .t{font-weight:600;font-size:14px}
+.pills{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.pill{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--paper);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--mark-soft);color:var(--mark)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.ac{background:var(--accent-soft);color:var(--accent)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.aula-head{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.aula-head h1{font-size:26px}
+.sub{color:var(--muted)}
+.material{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.file-ic{width:44px;height:52px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:11px;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.drop{border:2px dashed var(--line);border-radius:var(--radius);padding:22px;text-align:center;color:var(--muted)}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+details.extract{margin-top:12px}
+details.extract summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
+details.extract pre{white-space:pre-wrap;font-family:var(--font-body);font-size:13px;background:var(--paper);padding:12px;border-radius:8px;max-height:260px;overflow:auto;margin:8px 0 0}
+table.chamada{width:100%;border-collapse:collapse}
+table.chamada th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+table.chamada td{padding:7px 8px;border-bottom:1px solid var(--line)}
+table.chamada tr:last-child td{border-bottom:0}
+table.chamada tr.falta td{background:var(--bad-soft)}
+.num{font-variant-numeric:tabular-nums;color:var(--muted);width:32px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:5px 12px;font-size:13px;font-weight:700;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"].p{background:var(--ok);color:#fff}
+.seg button[aria-pressed="true"].f{background:var(--bad);color:#fff}
+.seg button:disabled{cursor:default}
+.foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.step{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start}
+.dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);background:var(--surface)}
+.step.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.step.run .dot{border-color:var(--accent);color:var(--accent)}
+.step.run .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite alternate}
+.step.err .dot{background:var(--bad);border-color:var(--bad);color:#fff}
+@keyframes pulse{from{opacity:.3}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.step.run .dot::after{animation:none}}
+.step .st{font-weight:600}
+.step .sd{color:var(--muted);font-size:13px}
+.stream{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:var(--paper);border-radius:8px;padding:10px;max-height:120px;overflow:hidden;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:6px;mask-image:linear-gradient(to bottom,transparent,black 40%)}
+.alert{padding:10px 14px;border-radius:8px;font-size:14px}
+.alert.err{background:var(--bad-soft);color:var(--bad)}
+.alert.warn{background:var(--mark-soft)}
+.alert.ok{background:var(--ok-soft)}
+/* Secretaria */
+.mail{display:grid;grid-template-columns:340px 1fr;gap:0;min-height:520px}
+@media (max-width:860px){.mail{grid-template-columns:1fr}}
+.mail-list{border-right:1px solid var(--line)}
+.mail-item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:12px 16px}
+.mail-item:hover{background:var(--paper)}
+.mail-item[aria-current="true"]{background:var(--accent-soft)}
+.mail-item.unread .mi-s{font-weight:700}
+.mail-item.unread::before{content:"";float:left;width:8px;height:8px;border-radius:50%;background:var(--mark);margin:6px 8px 0 -10px}
+.mi-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.mi-s{font-size:14px;margin:2px 0}
+.mi-p{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mail-view{padding:20px 24px}
+.mail-view h2{font-size:20px;margin-bottom:8px}
+.hdr{font-size:13px;color:var(--muted);display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin-bottom:16px}
+.mail-body{white-space:pre-line;max-width:65ch;margin-bottom:18px}
+.attach{display:flex;gap:10px;flex-wrap:wrap}
+.att{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface);min-width:250px}
+.att .pdf{width:30px;height:36px;border-radius:4px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center}
+.att .n{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.att>div:nth-child(2){min-width:0;flex:1}
+.att .m{font-size:12px;color:var(--muted)}
+.att-actions{display:flex;gap:6px;margin-left:auto}
+.empty{color:var(--muted);text-align:center;padding:60px 20px}
+/* Painel */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.tile .v{font-family:var(--font-display);font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .k{color:var(--muted);font-size:13px}
+table.list{width:100%;border-collapse:collapse;font-size:14px}
+table.list th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line)}
+table.list td{padding:9px 12px;border-bottom:1px solid var(--line)}
+.scroll-x{overflow-x:auto}
+/* Padrão */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.field label{display:block;font-weight:600;font-size:14px;margin-bottom:4px}
+.field input,.field select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.field .h{font-size:12.5px;color:var(--muted);margin-top:3px}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.part{border:1px solid var(--line);border-radius:var(--radius);padding:14px;border-top:4px solid var(--accent)}
+.part:nth-child(2){border-top-color:var(--mark)}
+.part:nth-child(3){border-top-color:#7a5cc2}
+.part:nth-child(4){border-top-color:var(--ok)}
+.part:nth-child(5){border-top-color:var(--muted)}
+.part b{display:block;font-family:var(--font-display);margin-bottom:4px}
+.part p{margin:0;font-size:13.5px;color:var(--muted)}
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(10,14,22,.55);z-index:20;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px}
+.modal-card{background:var(--surface);border-radius:12px;width:min(880px,100%);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-bar{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:-24px;background:var(--surface);border-radius:12px 12px 0 0;flex-wrap:wrap;z-index:2}
+.modal-bar h3{font-size:16px}
+.modal-body{padding:20px;background:#d9dcd6;border-radius:0 0 12px 12px;overflow-x:auto}
+.small-modal{width:min(440px,100%)}
+.small-modal .modal-body{background:var(--surface);display:flex;flex-direction:column;gap:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-weight:600;z-index:30;font-size:14px;max-width:90vw}
+/* ===== Apostila (documento impresso — sempre claro) ===== */
+.doc{width:794px;max-width:100%;margin:0 auto;background:#fff;color:#1b1b1b;font-family:var(--font-doc);font-size:13.5px;line-height:1.55;padding:48px 56px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.doc.export{width:700px;max-width:none;padding:0;box-shadow:none}
+.doc h1,.doc h2,.doc h3{font-family:var(--font-doc);color:#16223b;letter-spacing:0}
+.doc-top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1f6f6a;padding-bottom:8px;margin-bottom:14px}
+.doc-top .esc{font-family:var(--font-body);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#1f6f6a}
+.doc-top h1{font-size:22px;margin-top:2px}
+.doc-top .tag{font-family:var(--font-body);font-size:11px;border:1px solid #1f6f6a;color:#1f6f6a;padding:3px 8px;border-radius:4px;font-weight:700;white-space:nowrap}
+.info{width:100%;border-collapse:collapse;font-family:var(--font-body);font-size:12.5px;margin-bottom:14px}
+.info td{border:1px solid #c9ccc6;padding:5px 8px;vertical-align:top}
+.info td b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#5d6676}
+.info .aluno{font-size:15px;font-weight:700}
+.instr{background:#f1f6f5;border-left:4px solid #1f6f6a;padding:10px 14px;font-family:var(--font-body);font-size:13px;margin-bottom:18px}
+.parte{font-family:var(--font-body);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:#16223b;display:inline-block;padding:3px 10px;border-radius:3px;margin:22px 0 6px}
+.doc h2{font-size:18px;margin:0 0 10px}
+.doc h3{font-size:14.5px;margin:12px 0 4px}
+.doc p{margin:0 0 8px}
+.doc ul{margin:4px 0 10px;padding-left:20px}
+.conceitos{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.conceitos td{border-bottom:1px solid #dcdfd8;padding:5px 6px;vertical-align:top}
+.conceitos td:first-child{font-weight:700;width:32%;font-family:var(--font-body)}
+.q{margin:0 0 14px}
+.q .en{font-weight:600}
+.q .en span{font-family:var(--font-body);font-weight:700;color:#1f6f6a;margin-right:4px}
+.alts{list-style:none;padding:0;margin:6px 0 0 18px;display:grid;gap:3px}
+.alts li{display:grid;grid-template-columns:24px 1fr;align-items:start}
+.alts li b{display:inline-grid;place-items:center;width:18px;height:18px;border:1px solid #444;border-radius:50%;font-family:var(--font-body);font-size:10.5px;margin-top:2px}
+.lines{margin:8px 0 0}
+.lines div{border-bottom:1px solid #b9bdb5;height:26px}
+.mm{margin-top:6px}
+.mm svg{width:100%;height:auto;display:block}
+.gabarito{margin-top:28px;border-top:2px dashed #999;padding-top:16px}
+.gab-tag{font-family:var(--font-body);font-size:11px;color:#b33a2e;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.gab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;font-family:var(--font-body);margin:8px 0 12px}
+.gab-grid div{border:1px solid #c9ccc6;border-radius:4px;padding:4px 8px;text-align:center}
+.doc .exp{font-size:12.5px;color:#444}
+.doc-foot{margin-top:24px;font-family:var(--font-body);font-size:11px;color:#777;border-top:1px solid #ddd;padding-top:6px;display:flex;justify-content:space-between}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* ===== Provas e correção ===== */
+.steptabs{display:flex;gap:6px;flex-wrap:wrap}
+.steptab{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px;color:var(--muted)}
+.steptab[aria-current="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.qcard{border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:8px}
+.qcard .qh{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qcard .qh b{font-family:var(--font-display)}
+.qcard textarea,.qcard input[type=text],.qcard input[type=number]{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);font-size:14px}
+.qcard textarea{resize:vertical;min-height:48px}
+.alt-row{display:grid;grid-template-columns:auto 26px 1fr;gap:8px;align-items:center}
+.alt-row input[type=radio]{width:16px;height:16px;accent-color:var(--ok)}
+.crit-row{display:grid;grid-template-columns:1fr 80px auto;gap:8px;align-items:center}
+.ptsin{width:80px !important}
+.prova-list-item{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;padding:9px 10px;border-radius:8px;margin-bottom:2px}
+.prova-list-item:hover{background:var(--paper)}
+.prova-list-item[aria-current="true"]{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.rev{display:grid;grid-template-columns:250px 1fr;gap:16px;align-items:start}
+@media (max-width:980px){.rev{grid-template-columns:1fr}}
+.rv-item{display:flex;justify-content:space-between;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:9px 12px;font-size:14px}
+.rv-item:hover{background:var(--paper)}
+.rv-item[aria-current="true"]{background:var(--accent-soft)}
+.rv-item .nt{font-variant-numeric:tabular-nums;font-weight:700}
+.thumb{width:120px;border:1px solid var(--line);border-radius:6px;cursor:zoom-in;background:#fff}
+.crop{width:100%;border:1px solid var(--line);border-radius:6px;background:#fff;display:block}
+.transc{background:var(--paper);border-radius:8px;padding:10px 12px;font-size:15px;white-space:pre-wrap}
+.transc mark{background:var(--mark-soft);color:var(--mark);font-weight:700;border-radius:3px;padding:0 3px}
+.crit-list{list-style:none;padding:0;margin:0;display:grid;gap:4px;font-size:14px}
+.crit-list li{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+.dcard{border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:grid;gap:10px}
+.dcard.attn{border-color:var(--mark);box-shadow:inset 4px 0 0 var(--mark)}
+.nota-in{width:90px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);font-weight:700;font-size:15px}
+.fila{display:grid;gap:6px;margin-top:12px}
+.fila div{display:flex;gap:10px;align-items:center;font-size:14px;background:var(--paper);border-radius:8px;padding:8px 12px}
+.spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.sheet-prev{width:100%;max-width:420px;border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.12);background:#fff;display:block}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.how div{background:var(--paper);border-radius:8px;padding:10px 12px;font-size:13.5px}
+.how b{display:block;font-family:var(--font-display);font-size:14px;margin-bottom:2px}
+.objtab{width:100%;border-collapse:collapse;font-size:14px}
+.objtab th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+.objtab td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.objtab select{padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.bigtotal{font-family:var(--font-display);font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.folhas-grid{display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:20px;align-items:start}
+.layout>*,.rev>*,.stack>*,.folhas-grid>*,.mail>*{min-width:0}
+.mail-body,.hdr span{overflow-wrap:anywhere}
+.tab svg{width:18px;height:18px;flex:none}
+.tl-s,.mob-pick,.mob-rv{display:none}
+/* ===== Celular ===== */
+@media (max-width:760px){
+  .topbar{padding:8px 14px;gap:8px}
+  .brand-mark{width:28px;height:28px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);gap:0;padding:4px 2px 6px;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  .tab{flex-direction:column;gap:2px;font-size:11px;padding:6px 2px;justify-content:center;position:relative;border-radius:8px}
+  .tab svg{width:22px;height:22px}
+  .tl-l{display:none}.tl-s{display:block}
+  .tab .badge{position:absolute;top:1px;left:calc(50% + 6px);font-size:10px;padding:0 5px}
+  main{padding:12px 12px 92px}
+  .layout>aside{display:none}
+  .mob-pick{display:grid;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px}
+  .mob-pick .select{min-width:0}
+  .demo-note{font-size:13px;padding:8px 12px;margin-bottom:12px}
+  .aula-head h1{font-size:22px}
+  .panel-h,.panel-b{padding:12px}
+  .foot{padding:12px}
+  .foot .btn.primary{flex:1;padding:12px}
+  .seg button{padding:9px 11px}
+  table.chamada td{padding:8px 6px}
+  table.chamada .num{display:none}
+  .mail-list{max-height:260px;overflow:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .mail-view{padding:14px}
+  .att{min-width:0;width:100%}
+  .modal{padding:0}
+  .modal-card{border-radius:0;min-height:100%}
+  .modal-bar{top:0;border-radius:0}
+  .modal-body{padding:8px;border-radius:0}
+  .doc{padding:22px 16px;font-size:12.5px}
+  .folhas-grid{grid-template-columns:1fr}
+  .sheet-prev{max-width:100%}
+  .mob-rv{display:grid;gap:6px;padding:12px;border-bottom:1px solid var(--line)}
+  .rv-list{display:none}
+  .rv-detail{padding:12px !important}
+  .steptabs{display:grid;grid-template-columns:repeat(3,1fr)}
+  .steptab{font-size:12.5px;padding:7px 6px;border-radius:10px;line-height:1.2}
+  .tiles{grid-template-columns:1fr 1fr}
+  .tile .v{font-size:26px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">E</div><div><b>EduDiário</b><small id="escola-nome">Colégio Horizonte</small></div></div>
+    <nav class="tabs" id="tabs" aria-label="Áreas do sistema"></nav>
+    <div class="spacer"></div>
+    <button class="btn ghost small" id="reset">Reiniciar demonstração</button>
+  </header>
+  <main id="main"></main>
+</div>
+<div id="modal-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+<div id="export-root" style="position:fixed;left:-12000px;top:0" aria-hidden="true"></div>
+
+<script>
+/* ================== DADOS DE EXEMPLO ================== */
+const MAT_FOTOSSINTESE = `Fotossíntese — Aula 20/10 — 1º ano A — Profª Marina Costa
+
+1. O que é fotossíntese
+A fotossíntese é o processo pelo qual plantas, algas e algumas bactérias (como as cianobactérias) produzem matéria orgânica a partir de gás carbônico (CO2) e água (H2O), usando a energia da luz. O produto principal é a glicose (C6H12O6), e o oxigênio (O2) é liberado como subproduto.
+Equação geral: 6 CO2 + 6 H2O + luz → C6H12O6 + 6 O2
+
+2. Onde ocorre
+Nas células vegetais, a fotossíntese ocorre nos cloroplastos, organelas que contêm clorofila, o pigmento verde que absorve principalmente a luz azul e a vermelha. O cloroplasto tem membranas internas empilhadas, os tilacoides (que formam os grana), mergulhadas em um líquido chamado estroma.
+
+3. Etapa fotoquímica (fase clara)
+Acontece nas membranas dos tilacoides e depende diretamente da luz. A luz excita a clorofila; ocorre a fotólise da água (quebra da molécula de água), que libera O2, prótons e elétrons. A energia é armazenada em ATP e NADPH.
+
+4. Etapa química (fase escura ou Ciclo de Calvin)
+Acontece no estroma e não depende diretamente da luz, mas usa o ATP e o NADPH produzidos na fase clara. O CO2 do ar é fixado pela enzima Rubisco e transformado em glicose.
+
+5. Fatores que influenciam a taxa de fotossíntese
+Intensidade luminosa, concentração de CO2 e temperatura. Até certo ponto, aumentar esses fatores aumenta a taxa; acima de um limite, a taxa estabiliza (luz e CO2) ou cai (temperatura alta desnatura enzimas).
+Ponto de compensação luminoso: intensidade de luz em que a fotossíntese é igual à respiração; a planta não ganha nem perde matéria orgânica.
+
+6. Importância
+A fotossíntese é a base das cadeias alimentares (produtores), renova o oxigênio da atmosfera e retira CO2 do ar, ajudando a regular o clima.`;
+
+const MAT_RESPIRACAO = `Respiração Celular — Aula 27/10 — 1º ano A — Profª Marina Costa
+
+1. Conceito
+Respiração celular é o processo em que a célula quebra moléculas orgânicas, principalmente a glicose, para liberar a energia nelas armazenada e guardá-la na forma de ATP (adenosina trifosfato), a "moeda energética" da célula.
+Equação geral (respiração aeróbica): C6H12O6 + 6 O2 → 6 CO2 + 6 H2O + energia (até cerca de 30 a 32 ATP)
+
+2. Etapas da respiração aeróbica
+a) Glicólise — ocorre no citoplasma (citosol). A glicose (6 carbonos) é quebrada em duas moléculas de piruvato (ácido pirúvico, 3 carbonos). Saldo: 2 ATP e 2 NADH. Não precisa de oxigênio.
+b) Ciclo de Krebs (ciclo do ácido cítrico) — ocorre na matriz da mitocôndria. O piruvato é transformado em acetil-CoA, que entra no ciclo. Libera CO2 e produz NADH, FADH2 e 2 ATP.
+c) Cadeia respiratória (cadeia transportadora de elétrons e fosforilação oxidativa) — ocorre nas cristas mitocondriais (membrana interna). Os elétrons do NADH e FADH2 passam por proteínas até o oxigênio, aceptor final, formando água. É a etapa que mais produz ATP, por meio da enzima ATP sintase.
+
+3. Fermentação
+Quando não há oxigênio suficiente, algumas células fazem fermentação: só a glicólise produz ATP (saldo de 2 ATP).
+- Fermentação lática: piruvato vira ácido lático. Ocorre em bactérias (produção de iogurte) e em músculos humanos em esforço intenso.
+- Fermentação alcoólica: piruvato vira etanol e CO2. Feita por leveduras; usada na produção de pão, cerveja e vinho.
+
+4. Comparação com a fotossíntese
+A respiração consome O2 e glicose e libera CO2 e água; a fotossíntese faz o inverso. A respiração acontece em todas as células vivas, dia e noite, inclusive nas plantas.
+
+5. Mitocôndria
+Organela de dupla membrana; a interna forma dobras chamadas cristas, que aumentam a superfície para a cadeia respiratória. Possui DNA próprio.`;
+
+const MAT_REVOLUCAO = `Revolução Industrial — Aula 28/10 — 2º ano B — Prof. Paulo Mendes
+
+1. Contexto
+A Revolução Industrial começou na Inglaterra, na segunda metade do século XVIII (por volta de 1760). Marcou a passagem da produção artesanal e manufatureira para a produção mecanizada em fábricas.
+
+2. Por que a Inglaterra?
+- Acúmulo de capital vindo do comércio colonial e do mercantilismo.
+- Grandes reservas de carvão mineral e ferro.
+- Cercamentos (enclosures): camponeses expulsos das terras comuns migraram para as cidades, formando mão de obra barata.
+- Estabilidade política após a Revolução Gloriosa (1688) e uma burguesia forte.
+
+3. Fases
+Primeira Revolução Industrial (c. 1760–1850): máquina a vapor (aperfeiçoada por James Watt), indústria têxtil, carvão, ferrovias.
+Segunda Revolução Industrial (c. 1850–1945): eletricidade, petróleo, aço, química, motor a combustão; linha de montagem (fordismo); expansão para EUA, Alemanha, França e Japão.
+
+4. Consequências sociais
+- Urbanização acelerada e cidades insalubres.
+- Formação do proletariado: jornadas de 14 a 16 horas, trabalho infantil e feminino com salários menores.
+- Movimentos operários: ludismo (quebra de máquinas), cartismo (direitos políticos) e sindicatos (trade unions).
+- Surgimento de ideias socialistas (Marx e Engels) como crítica ao capitalismo industrial.
+
+5. Consequências econômicas e ambientais
+Aumento enorme da produção, barateamento de mercadorias, fortalecimento do capitalismo industrial e busca por mercados e matérias-primas (base do imperialismo do século XIX). Início da poluição em larga escala pela queima de carvão.`;
+
+const APOSTILA_FOTOSSINTESE = {
+  titulo:"Fotossíntese: como as plantas transformam luz em alimento",
+  objetivos:["Explicar o que é a fotossíntese e escrever sua equação geral","Identificar onde o processo ocorre na célula vegetal","Diferenciar a etapa fotoquímica da etapa química","Reconhecer os fatores que alteram a taxa de fotossíntese e sua importância para a vida"],
+  resumo:[
+    {titulo:"O que é a fotossíntese",texto:"A fotossíntese é o processo em que plantas, algas e algumas bactérias, como as cianobactérias, fabricam o próprio alimento. Elas usam gás carbônico (CO2), retirado do ar, e água (H2O), absorvida do ambiente, e transformam essas substâncias em glicose (C6H12O6) com a energia da luz. Nesse processo, o oxigênio (O2) é liberado para o ambiente.\nA equação geral resume o processo: 6 CO2 + 6 H2O + luz → C6H12O6 + 6 O2. Leia a equação assim: seis moléculas de gás carbônico mais seis de água, com energia luminosa, formam uma molécula de glicose e liberam seis de oxigênio."},
+    {titulo:"Onde acontece: o cloroplasto",texto:"Na célula vegetal, a fotossíntese ocorre nos cloroplastos. Eles contêm clorofila, o pigmento verde que absorve principalmente as luzes azul e vermelha (por isso refletem o verde, que é a cor que enxergamos).\nDentro do cloroplasto há pilhas de membranas chamadas tilacoides (cada pilha é um granum, plural grana), mergulhadas em um líquido chamado estroma. Guarde essa organização: cada etapa da fotossíntese acontece em um desses lugares."},
+    {titulo:"Etapa fotoquímica (fase clara)",texto:"Acontece nas membranas dos tilacoides e depende diretamente da luz. A luz excita a clorofila e provoca a fotólise da água, isto é, a quebra da molécula de água. Dessa quebra saem o oxigênio que a planta libera, além de prótons e elétrons.\nA energia captada fica armazenada em duas moléculas: ATP e NADPH. Elas funcionam como \"baterias carregadas\" que serão usadas na etapa seguinte."},
+    {titulo:"Etapa química (fase escura ou Ciclo de Calvin)",texto:"Acontece no estroma e não usa a luz diretamente, mas depende do ATP e do NADPH produzidos na fase clara. Nela, o CO2 do ar é capturado (fixado) pela enzima Rubisco e, por uma sequência de reações, transformado em glicose.\nAtenção: o nome \"fase escura\" não quer dizer que ela só acontece à noite. Ela ocorre durante o dia, junto com a fase clara, porque precisa dos produtos dela."},
+    {titulo:"Fatores que alteram a taxa de fotossíntese",texto:"Três fatores principais influenciam a velocidade da fotossíntese: intensidade da luz, concentração de CO2 e temperatura. Aumentar a luz ou o CO2 aumenta a taxa até um limite, a partir do qual ela se estabiliza. Com a temperatura é diferente: acima do ideal, as enzimas se desnaturam e a taxa cai.\nO ponto de compensação luminoso é a intensidade de luz em que a fotossíntese é igual à respiração da planta. Nesse ponto, a planta não ganha nem perde matéria orgânica."},
+    {titulo:"Por que a fotossíntese é tão importante",texto:"Os seres fotossintetizantes são os produtores: a base de todas as cadeias alimentares. Além disso, a fotossíntese renova o oxigênio da atmosfera e retira CO2 do ar, contribuindo para regular o clima do planeta."}
+  ],
+  conceitos:[
+    {termo:"Clorofila",definicao:"Pigmento verde que absorve a energia da luz."},
+    {termo:"Cloroplasto",definicao:"Organela onde ocorre a fotossíntese."},
+    {termo:"Tilacoide",definicao:"Membrana interna do cloroplasto onde ocorre a fase clara."},
+    {termo:"Estroma",definicao:"Líquido interno do cloroplasto onde ocorre o Ciclo de Calvin."},
+    {termo:"Fotólise da água",definicao:"Quebra da água pela luz, que libera o O2."},
+    {termo:"Rubisco",definicao:"Enzima que fixa o CO2 no Ciclo de Calvin."},
+    {termo:"Ponto de compensação",definicao:"Luz em que fotossíntese e respiração se igualam."}
+  ],
+  objetivas:[
+    {enunciado:"Qual é a origem do oxigênio liberado na fotossíntese?",alternativas:["Do gás carbônico absorvido do ar","Da quebra da glicose","Da fotólise da água","Da clorofila"],correta:2,explicacao:"O O2 vem da quebra (fotólise) da água na etapa fotoquímica."},
+    {enunciado:"A etapa química da fotossíntese (Ciclo de Calvin) ocorre:",alternativas:["nas membranas dos tilacoides","no estroma do cloroplasto","na mitocôndria","no núcleo da célula"],correta:1,explicacao:"O Ciclo de Calvin acontece no estroma, usando ATP e NADPH da fase clara."},
+    {enunciado:"Quais moléculas produzidas na fase clara são usadas na fase escura?",alternativas:["Glicose e oxigênio","CO2 e água","ATP e NADPH","Clorofila e Rubisco"],correta:2,explicacao:"ATP e NADPH guardam a energia captada da luz e abastecem o Ciclo de Calvin."},
+    {enunciado:"Uma planta mantida exatamente no ponto de compensação luminoso:",alternativas:["acumula muita matéria orgânica","não faz fotossíntese","faz fotossíntese na mesma taxa em que respira","só respira"],correta:2,explicacao:"No ponto de compensação, fotossíntese e respiração se igualam."},
+    {enunciado:"O que acontece com a taxa de fotossíntese quando a temperatura sobe muito acima do ideal?",alternativas:["Aumenta sem limite","Cai, porque as enzimas se desnaturam","Fica igual","Aumenta só à noite"],correta:1,explicacao:"Temperaturas altas desnaturam enzimas como a Rubisco, e a taxa diminui."}
+  ],
+  dissertativas:[
+    {enunciado:"Escreva a equação geral da fotossíntese e explique, com suas palavras, o que entra e o que sai do processo.",resposta_esperada:"6 CO2 + 6 H2O + luz → C6H12O6 + 6 O2. Entram gás carbônico e água, com energia luminosa; saem glicose (alimento da planta) e oxigênio, liberado para o ambiente."},
+    {enunciado:"Compare a etapa fotoquímica e a etapa química: onde cada uma ocorre e qual a relação entre elas?",resposta_esperada:"A fotoquímica ocorre nos tilacoides, depende da luz, quebra a água, libera O2 e produz ATP e NADPH. A química ocorre no estroma, usa ATP e NADPH para fixar CO2 e produzir glicose. A segunda depende dos produtos da primeira."},
+    {enunciado:"Explique por que a fotossíntese é importante para os seres humanos, mesmo que não façamos fotossíntese.",resposta_esperada:"Ela produz o oxigênio que respiramos, é a base das cadeias alimentares (todo alimento depende, direta ou indiretamente, dos produtores) e retira CO2 da atmosfera, ajudando a regular o clima."}
+  ],
+  mapa_mental:{centro:"Fotossíntese",ramos:[
+    {titulo:"Equação",itens:["6 CO2 + 6 H2O + luz","→ glicose + 6 O2"]},
+    {titulo:"Local",itens:["Cloroplasto","Clorofila absorve luz","Tilacoides e estroma"]},
+    {titulo:"Fase clara",itens:["Nos tilacoides","Fotólise da água libera O2","Produz ATP e NADPH"]},
+    {titulo:"Fase escura",itens:["No estroma (Ciclo de Calvin)","Rubisco fixa CO2","Forma glicose"]},
+    {titulo:"Fatores",itens:["Luz e CO2: aumentam até um limite","Calor excessivo reduz","Ponto de compensação"]},
+    {titulo:"Importância",itens:["Base das cadeias alimentares","Renova o O2","Retira CO2 do ar"]}
+  ]}
+};
+
+const PROVA_SEED = {
+  id:"pv1", turmaId:"t1", titulo:"Avaliação 1 · Fotossíntese e respiração celular", data:"2026-10-30", origem:"Prova_Biologia_1A_4bim.pdf",
+  objetivas:[
+    {enunciado:"Em qual organela ocorre a fotossíntese?",alternativas:["Mitocôndria","Cloroplasto","Ribossomo","Núcleo"],correta:1,pontos:1},
+    {enunciado:"O oxigênio liberado na fotossíntese vem:",alternativas:["do gás carbônico","da glicose","da fotólise da água","da clorofila"],correta:2,pontos:1},
+    {enunciado:"Qual etapa da respiração aeróbica ocorre no citoplasma?",alternativas:["Ciclo de Krebs","Cadeia respiratória","Glicólise","Ciclo de Calvin"],correta:2,pontos:1},
+    {enunciado:"Na cadeia respiratória, o aceptor final de elétrons é:",alternativas:["o oxigênio","o gás carbônico","a glicose","o NADH"],correta:0,pontos:1},
+    {enunciado:"A fermentação alcoólica, usada na produção de pão, é realizada por:",alternativas:["leveduras","músculos humanos","cloroplastos","bactérias do iogurte"],correta:0,pontos:1}
+  ],
+  dissertativas:[
+    {enunciado:"Compare a fotossíntese e a respiração celular quanto aos reagentes e aos produtos de cada processo.",resposta_esperada:"Fotossíntese: consome CO2 e água (com luz) e produz glicose e O2. Respiração: consome glicose e O2 e produz CO2, água e energia (ATP).",criterios:[{descricao:"Fotossíntese: consome CO2 e água e produz glicose e oxigênio",pontos:1},{descricao:"Respiração: consome glicose e oxigênio e produz CO2, água e energia/ATP",pontos:1}]},
+    {enunciado:"Explique por que a etapa química da fotossíntese depende da etapa fotoquímica.",resposta_esperada:"Porque o Ciclo de Calvin usa o ATP e o NADPH produzidos na etapa fotoquímica (fase clara) para fixar o CO2 e formar glicose.",criterios:[{descricao:"Cita que a etapa química usa ATP e NADPH",pontos:1},{descricao:"Diz que eles são produzidos na etapa fotoquímica (fase clara)",pontos:0.5}]},
+    {enunciado:"Um atleta em esforço intenso sente dor e fadiga muscular. Explique o que acontece nas células dos músculos.",resposta_esperada:"Falta oxigênio suficiente para a respiração aeróbica; as células fazem fermentação lática e acumulam ácido lático.",criterios:[{descricao:"Falta de oxigênio suficiente nas células musculares",pontos:0.5},{descricao:"Fazem fermentação lática, produzindo ácido lático",pontos:1}]}
+  ]
+};
+const SIM_SEED = [
+  {obj:[1,2,2,0,0],diss:["Na fotossintese a planta usa gas carbonico e agua com a luz e produz glicose e oxigenio. Na respiração é o contrario, a celula usa glicose e oxigenio e libera gas carbonico, agua e energia (ATP).","Porque a fase quimica usa o ATP e o NADPH que foram feitos na fase clara. Sem eles não tem energia pra fixar o CO2.","Falta oxigenio no musculo, entao as celulas fazem fermentação latica e produzem acido latico."]},
+  {obj:[1,0,2,1,0],diss:["a fotosintese produz oxigenio e a respirasão gasta oxigenio e solta gas carbonico","por que precisa da luz do dia pra funcionar","o musculo fica sem oxigenio e faz fermentasão e ai da dor"]},
+  {obj:[3,2,0,0,1],diss:["as duas são processos da celula que dão energia","não sei","acido latico no musculo"]}
+];
+
+/* Resultados já gerados pela IA, usados quando o EduDiário roda como site sem IA */
+const C6=["Fotossíntese: consome CO2 e água e produz glicose e oxigênio","Respiração: consome glicose e oxigênio e produz CO2, água e energia/ATP"], C7=["Cita que a etapa química usa ATP e NADPH","Diz que eles são produzidos na etapa fotoquímica (fase clara)"], C8=["Falta de oxigênio suficiente nas células musculares","Fazem fermentação lática, produzindo ácido lático"];
+const cr=(d,a,p)=>({descricao:d,avaliacao:a,pontos:p});
+const SIM_CORRECAO=[
+  [{questao:6,transcricao:SIM_SEED[0].diss[0],legibilidade:"boa",criterios:[cr(C6[0],"sim",1),cr(C6[1],"sim",1)],nota_sugerida:2,justificativa:"Comparou corretamente reagentes e produtos dos dois processos."},
+   {questao:7,transcricao:SIM_SEED[0].diss[1],legibilidade:"boa",criterios:[cr(C7[0],"sim",1),cr(C7[1],"sim",0.5)],nota_sugerida:1.5,justificativa:"Citou ATP e NADPH e que vêm da fase clara."},
+   {questao:8,transcricao:SIM_SEED[0].diss[2],legibilidade:"boa",criterios:[cr(C8[0],"sim",0.5),cr(C8[1],"sim",1)],nota_sugerida:1.5,justificativa:"Resposta completa: falta de oxigênio e fermentação lática."}],
+  [{questao:6,transcricao:SIM_SEED[1].diss[0],legibilidade:"dificil",criterios:[cr(C6[0],"parcial",0.5),cr(C6[1],"parcial",0.5)],nota_sugerida:1,justificativa:"Falou só do oxigênio e do gás carbônico; não citou glicose, água nem energia."},
+   {questao:7,transcricao:SIM_SEED[1].diss[1],legibilidade:"boa",criterios:[cr(C7[0],"nao",0),cr(C7[1],"nao",0)],nota_sugerida:0,justificativa:"Não citou ATP nem NADPH; confundiu com a necessidade de luz."},
+   {questao:8,transcricao:SIM_SEED[1].diss[2],legibilidade:"boa",criterios:[cr(C8[0],"sim",0.5),cr(C8[1],"parcial",0.5)],nota_sugerida:1,justificativa:"Citou falta de oxigênio e fermentação, mas não disse que é lática nem o ácido lático."}],
+  [{questao:6,transcricao:SIM_SEED[2].diss[0],legibilidade:"boa",criterios:[cr(C6[0],"nao",0),cr(C6[1],"parcial",0.25)],nota_sugerida:0.25,justificativa:"Resposta genérica; só menciona energia."},
+   {questao:7,transcricao:SIM_SEED[2].diss[1],legibilidade:"boa",criterios:[cr(C7[0],"nao",0),cr(C7[1],"nao",0)],nota_sugerida:0,justificativa:"O aluno escreveu que não sabe."},
+   {questao:8,transcricao:SIM_SEED[2].diss[2],legibilidade:"boa",criterios:[cr(C8[0],"nao",0),cr(C8[1],"parcial",0.5)],nota_sugerida:0.5,justificativa:"Citou o ácido lático, mas não explicou a falta de oxigênio nem a fermentação."}]
+];
+const APOSTILAS_PRONTAS = {
+  au2:{
+    titulo:"Respiração celular: como a célula tira energia do alimento",
+    objetivos:["Explicar o que é a respiração celular e para que serve o ATP","Descrever as três etapas da respiração aeróbica e onde ocorrem","Diferenciar fermentação lática e alcoólica","Comparar respiração celular e fotossíntese"],
+    resumo:[
+      {titulo:"O que é respiração celular",texto:"Respiração celular é o processo em que a célula quebra moléculas orgânicas, principalmente a glicose, para liberar a energia guardada nelas. Essa energia é armazenada no ATP (adenosina trifosfato), conhecido como a \"moeda energética\" da célula, porque é ele que a célula \"gasta\" para realizar suas atividades.\nA equação geral da respiração aeróbica é: C6H12O6 + 6 O2 → 6 CO2 + 6 H2O + energia (cerca de 30 a 32 ATP)."},
+      {titulo:"Etapa 1: glicólise",texto:"Ocorre no citoplasma (citosol) e não precisa de oxigênio. A glicose, que tem 6 carbonos, é quebrada em duas moléculas de piruvato (ácido pirúvico), cada uma com 3 carbonos. O saldo dessa etapa é de 2 ATP e 2 NADH."},
+      {titulo:"Etapa 2: ciclo de Krebs",texto:"Ocorre na matriz da mitocôndria. O piruvato é transformado em acetil-CoA, que entra no ciclo. Nesse ciclo é liberado CO2 (é daí que vem o gás carbônico que expiramos) e são produzidos NADH, FADH2 e 2 ATP."},
+      {titulo:"Etapa 3: cadeia respiratória",texto:"Ocorre nas cristas mitocondriais, as dobras da membrana interna da mitocôndria. Os elétrons levados pelo NADH e pelo FADH2 passam por uma sequência de proteínas até chegar ao oxigênio, que é o aceptor final. Ao receber os elétrons, o oxigênio forma água.\nÉ a etapa que mais produz ATP, graças à enzima ATP sintase. Por isso o oxigênio é tão importante: sem ele, essa etapa para."},
+      {titulo:"Fermentação: quando falta oxigênio",texto:"Sem oxigênio suficiente, algumas células fazem fermentação. Nela, só a glicólise produz ATP, com saldo de apenas 2 ATP.\nNa fermentação lática, o piruvato vira ácido lático. Ela é feita por bactérias (como na produção de iogurte) e pelos músculos humanos durante esforço intenso.\nNa fermentação alcoólica, o piruvato vira etanol e CO2. Ela é feita por leveduras e usada na produção de pão, cerveja e vinho."},
+      {titulo:"Respiração x fotossíntese e a mitocôndria",texto:"A respiração consome glicose e O2 e libera CO2 e água; a fotossíntese faz o contrário. A respiração acontece em todas as células vivas, de dia e de noite, inclusive nas plantas.\nA mitocôndria tem duas membranas; a interna forma as cristas, que aumentam a área para a cadeia respiratória. Ela também tem DNA próprio."}
+    ],
+    conceitos:[{termo:"ATP",definicao:"Molécula que armazena energia para a célula usar."},{termo:"Glicólise",definicao:"Quebra da glicose em piruvato, no citoplasma."},{termo:"Ciclo de Krebs",definicao:"Etapa na matriz mitocondrial que libera CO2."},{termo:"Cadeia respiratória",definicao:"Etapa nas cristas que mais produz ATP."},{termo:"Aceptor final",definicao:"O oxigênio, que recebe os elétrons e forma água."},{termo:"Fermentação lática",definicao:"Piruvato vira ácido lático, sem oxigênio."},{termo:"Fermentação alcoólica",definicao:"Piruvato vira etanol e CO2, feita por leveduras."}],
+    objetivas:[
+      {enunciado:"Onde ocorre a glicólise?",alternativas:["Na matriz da mitocôndria","No citoplasma","Nas cristas mitocondriais","No cloroplasto"],correta:1,explicacao:"A glicólise acontece no citoplasma (citosol)."},
+      {enunciado:"Qual é a etapa da respiração aeróbica que mais produz ATP?",alternativas:["Glicólise","Fermentação","Ciclo de Krebs","Cadeia respiratória"],correta:3,explicacao:"A cadeia respiratória, com a ATP sintase, produz a maior parte do ATP."},
+      {enunciado:"Na cadeia respiratória, o oxigênio funciona como:",alternativas:["aceptor final de elétrons, formando água","fonte de carbono","produto final liberado","enzima"],correta:0,explicacao:"O O2 recebe os elétrons no fim da cadeia e forma água."},
+      {enunciado:"O saldo de ATP da fermentação é de:",alternativas:["30 a 32 ATP","2 ATP","10 ATP","nenhum ATP"],correta:1,explicacao:"Na fermentação, só a glicólise produz ATP: saldo de 2."},
+      {enunciado:"A fermentação usada na produção do pão é a:",alternativas:["lática, feita por bactérias","alcoólica, feita por leveduras","lática, feita por músculos","aeróbica, feita por mitocôndrias"],correta:1,explicacao:"As leveduras fazem fermentação alcoólica; o CO2 faz a massa crescer."}
+    ],
+    dissertativas:[
+      {enunciado:"Descreva as três etapas da respiração aeróbica, dizendo onde cada uma ocorre.",resposta_esperada:"Glicólise no citoplasma (glicose vira piruvato); ciclo de Krebs na matriz mitocondrial (libera CO2); cadeia respiratória nas cristas (produz a maior parte do ATP e forma água)."},
+      {enunciado:"Explique por que os músculos produzem ácido lático durante um exercício muito intenso.",resposta_esperada:"Porque falta oxigênio suficiente para a respiração aeróbica; as células musculares fazem fermentação lática, e o piruvato vira ácido lático."},
+      {enunciado:"Compare respiração celular e fotossíntese quanto ao que consomem e ao que produzem.",resposta_esperada:"A respiração consome glicose e O2 e produz CO2, água e energia (ATP); a fotossíntese consome CO2 e água, com luz, e produz glicose e O2."}
+    ],
+    mapa_mental:{centro:"Respiração celular",ramos:[
+      {titulo:"Objetivo",itens:["Liberar energia da glicose","Guardar energia no ATP"]},
+      {titulo:"Glicólise",itens:["No citoplasma","Glicose → 2 piruvatos","Saldo: 2 ATP"]},
+      {titulo:"Ciclo de Krebs",itens:["Matriz da mitocôndria","Libera CO2","Produz NADH e FADH2"]},
+      {titulo:"Cadeia respiratória",itens:["Cristas mitocondriais","O2 é o aceptor final","Mais ATP (ATP sintase)"]},
+      {titulo:"Fermentação",itens:["Sem oxigênio: 2 ATP","Lática: músculo, iogurte","Alcoólica: pão, vinho"]},
+      {titulo:"Comparação",itens:["Inverso da fotossíntese","Ocorre em todas as células"]}
+    ]}
+  },
+  au4:{
+    titulo:"Revolução Industrial: das oficinas às fábricas",
+    objetivos:["Explicar o que foi a Revolução Industrial e quando começou","Identificar por que ela começou na Inglaterra","Diferenciar a Primeira e a Segunda Revolução Industrial","Analisar suas consequências sociais, econômicas e ambientais"],
+    resumo:[
+      {titulo:"O que foi",texto:"A Revolução Industrial começou na Inglaterra, por volta de 1760, na segunda metade do século XVIII. Ela marcou a passagem da produção artesanal e manufatureira, feita à mão ou com ferramentas simples, para a produção com máquinas dentro de fábricas."},
+      {titulo:"Por que começou na Inglaterra",texto:"Quatro fatores explicam o pioneirismo inglês. Primeiro, o acúmulo de capital vindo do comércio colonial e do mercantilismo. Segundo, grandes reservas de carvão mineral e de ferro. Terceiro, os cercamentos (enclosures): camponeses foram expulsos das terras comuns e migraram para as cidades, formando mão de obra barata. Quarto, a estabilidade política depois da Revolução Gloriosa (1688) e uma burguesia forte."},
+      {titulo:"Primeira Revolução Industrial (c. 1760–1850)",texto:"Teve como base a máquina a vapor, aperfeiçoada por James Watt, a indústria têxtil, o carvão como fonte de energia e as ferrovias, que transformaram o transporte."},
+      {titulo:"Segunda Revolução Industrial (c. 1850–1945)",texto:"Trouxe a eletricidade, o petróleo, o aço, a indústria química e o motor a combustão. Surgiu a linha de montagem (fordismo), que acelerou a produção em série. A industrialização se espalhou para Estados Unidos, Alemanha, França e Japão."},
+      {titulo:"Consequências sociais",texto:"As cidades cresceram rápido e se tornaram insalubres. Formou-se o proletariado, que enfrentava jornadas de 14 a 16 horas, trabalho infantil e salários menores para mulheres.\nOs trabalhadores reagiram: o ludismo quebrava máquinas, o cartismo lutava por direitos políticos e surgiram os sindicatos (trade unions). Também nasceram ideias socialistas, como as de Marx e Engels, criticando o capitalismo industrial."},
+      {titulo:"Consequências econômicas e ambientais",texto:"A produção aumentou muito e as mercadorias ficaram mais baratas. O capitalismo industrial se fortaleceu, e a busca por mercados e matérias-primas está na base do imperialismo do século XIX. A queima de carvão deu início à poluição em larga escala."}
+    ],
+    conceitos:[{termo:"Manufatura",definicao:"Produção manual, antes das máquinas."},{termo:"Cercamentos",definicao:"Fechamento das terras comuns, que expulsou camponeses."},{termo:"Proletariado",definicao:"Trabalhadores assalariados das fábricas."},{termo:"Ludismo",definicao:"Movimento operário que quebrava máquinas."},{termo:"Cartismo",definicao:"Movimento por direitos políticos dos trabalhadores."},{termo:"Fordismo",definicao:"Produção em série com linha de montagem."}],
+    objetivas:[
+      {enunciado:"A Revolução Industrial começou:",alternativas:["na França, no século XVII","na Inglaterra, por volta de 1760","nos Estados Unidos, em 1850","na Alemanha, no século XX"],correta:1,explicacao:"Ela começou na Inglaterra, na segunda metade do século XVIII."},
+      {enunciado:"Os cercamentos (enclosures) contribuíram para a industrialização porque:",alternativas:["aumentaram as terras dos camponeses","criaram mão de obra barata nas cidades","proibiram o uso do carvão","fortaleceram a nobreza"],correta:1,explicacao:"Camponeses expulsos migraram para as cidades e viraram operários."},
+      {enunciado:"É característica da Segunda Revolução Industrial:",alternativas:["o uso da eletricidade e do petróleo","o tear manual","a máquina a vapor de James Watt como única inovação","o fim das fábricas"],correta:0,explicacao:"Eletricidade, petróleo, aço e química marcam a segunda fase."},
+      {enunciado:"O movimento operário que quebrava máquinas ficou conhecido como:",alternativas:["cartismo","sindicalismo","ludismo","fordismo"],correta:2,explicacao:"Os ludistas destruíam máquinas, vistas como causa do desemprego."},
+      {enunciado:"Uma consequência ambiental da Revolução Industrial foi:",alternativas:["a redução das cidades","o fim do uso de carvão","o início da poluição em larga escala","a volta à produção artesanal"],correta:2,explicacao:"A queima de carvão iniciou a poluição em grande escala."}
+    ],
+    dissertativas:[
+      {enunciado:"Explique dois fatores que fizeram a Revolução Industrial começar na Inglaterra.",resposta_esperada:"Dois entre: capital acumulado do comércio colonial; reservas de carvão e ferro; cercamentos que geraram mão de obra barata; estabilidade política e burguesia forte."},
+      {enunciado:"Descreva as condições de vida e de trabalho dos operários no início da industrialização.",resposta_esperada:"Jornadas de 14 a 16 horas, trabalho infantil, mulheres ganhando menos e cidades lotadas e insalubres."},
+      {enunciado:"Como os trabalhadores reagiram às condições impostas pela industrialização? Cite dois movimentos.",resposta_esperada:"Com o ludismo (quebra de máquinas), o cartismo (direitos políticos) e os sindicatos (trade unions); também surgiram ideias socialistas."}
+    ],
+    mapa_mental:{centro:"Revolução Industrial",ramos:[
+      {titulo:"Início",itens:["Inglaterra, c. 1760","Do artesanato à fábrica"]},
+      {titulo:"Por que a Inglaterra",itens:["Capital do comércio","Carvão e ferro","Cercamentos: mão de obra"]},
+      {titulo:"1ª fase",itens:["Máquina a vapor","Têxtil e ferrovias"]},
+      {titulo:"2ª fase",itens:["Eletricidade e petróleo","Aço e linha de montagem"]},
+      {titulo:"Sociedade",itens:["Proletariado e longas jornadas","Ludismo, cartismo, sindicatos"]},
+      {titulo:"Economia e ambiente",itens:["Produção em massa","Imperialismo","Poluição pelo carvão"]}
+    ]}
+  }
+};
+
+function seed(){
+  const a1 = ["Ana Clara Souza","Beatriz Nogueira","Bruno Henrique Lima","Caio Martins","Davi Rocha","Eduarda Pires","Felipe Andrade","Gabriela Teixeira","Isabela Freitas","Lucas Almeida","Rafael Monteiro","Sofia Cardoso"];
+  const a2 = ["Alice Barbosa","Arthur Gomes","Clara Ventura","Enzo Ribeiro","Helena Duarte","João Pedro Vieira","Laura Mendonça","Mateus Farias","Pedro Henrique Sales","Valentina Rocha"];
+  const mk = (arr, pre) => arr.map((n,i)=>({id:pre+i, nome:n, matricula:"2026"+pre.toUpperCase().replace(/[^0-9A-Z]/g,"")+String(i+1).padStart(3,"0")}));
+  const alunos1 = mk(a1,"1a"), alunos2 = mk(a2,"2b");
+  const allP = al => Object.fromEntries(al.map(a=>[a.id,"P"]));
+  const chFoto = allP(alunos1); chFoto["1a1"]="F"; chFoto["1a9"]="F";
+  return {
+    config:{escola:"Colégio Horizonte", emailSecretaria:"secretaria@colegiohorizonte.edu.br", objetivas:5, dissertativas:3, gabarito:true},
+    professores:[{id:"p1",nome:"Marina Costa",disc:"Biologia"},{id:"p2",nome:"Paulo Mendes",disc:"História"}],
+    turmas:[
+      {id:"t1",nome:"1º ano A",serie:"1º ano do Ensino Médio",disciplina:"Biologia",profId:"p1",alunos:alunos1},
+      {id:"t2",nome:"2º ano B",serie:"2º ano do Ensino Médio",disciplina:"História",profId:"p2",alunos:alunos2}
+    ],
+    aulas:[
+      {id:"au1",turmaId:"t1",data:"2026-10-20",tema:"Fotossíntese",material:{nome:"Aula_Fotossintese_1A.pdf",tamanho:412000,texto:MAT_FOTOSSINTESE},chamada:chFoto,salva:true,apostila:APOSTILA_FOTOSSINTESE,enviados:["1a1","1a9"]},
+      {id:"au2",turmaId:"t1",data:"2026-10-27",tema:"Respiração celular",material:{nome:"Respiracao_Celular_slides.pdf",tamanho:1830000,texto:MAT_RESPIRACAO},chamada:allP(alunos1),salva:false,apostila:null,enviados:[]},
+      {id:"au3",turmaId:"t1",data:"2026-11-03",tema:"Divisão celular: mitose e meiose",material:null,chamada:allP(alunos1),salva:false,apostila:null,enviados:[]},
+      {id:"au4",turmaId:"t2",data:"2026-10-28",tema:"Revolução Industrial",material:{nome:"Revolucao_Industrial.docx",tamanho:96000,texto:MAT_REVOLUCAO},chamada:allP(alunos2),salva:false,apostila:null,enviados:[]}
+    ],
+    emails:[
+      {id:"e1",quando:"2026-10-20T10:42:00",aulaId:"au1",alunos:["1a1","1a9"],lido:false,impressos:{}}
+    ],
+    provas:[JSON.parse(JSON.stringify(PROVA_SEED))],
+    resultados:{},
+    ui:{view:"professor",profId:"p1",aulaId:"au2",emailId:"e1",provaId:"pv1",provaStep:"questoes",rvAluno:null}
+  };
+}
+
+/* ================== ESTADO ================== */
+const KEY="edudiario-demo-v2";
+let S;
+try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){ S=null; }
+if(!S || !S.aulas) S = seed();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let run = null; // geração em andamento {aulaId, steps, stream, ctl, error}
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const turmaById = id => S.turmas.find(t=>t.id===id);
+const aulaById = id => S.aulas.find(a=>a.id===id);
+const profById = id => S.professores.find(p=>p.id===id);
+const alunoById = id => { for(const t of S.turmas){ const a=t.alunos.find(x=>x.id===id); if(a) return a; } return null; };
+const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const fmtData = d => { const [y,m,dd]=d.split("-"); return `${dd}/${m}/${y}`; };
+const fmtCurta = d => { const [y,m,dd]=d.split("-"); return `${dd}/${m}`; };
+const fmtTam = b => b>=1e6 ? (b/1e6).toFixed(1).replace(".",",")+" MB" : Math.max(1,Math.round(b/1e3))+" KB";
+const fmtQuando = iso => { const d=new Date(iso); return d.toLocaleDateString("pt-BR")+" às "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); };
+const slug = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"");
+function toast(msg){ const r=$("#toast-root"); r.innerHTML=`<div class="toast">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML="",3200); }
+
+/* ================== CAPACIDADES ================== */
+let sampleFn = null, downloadsNs = null, capsReady=false;
+const SITE = !window.claude; // aberto como site comum, fora do Claude
+const podeBaixar = () => !!downloadsNs || SITE;
+async function salvarArquivo(filename, blob){
+  if(downloadsNs) return downloadsNs.save({filename, data: blob});
+  const url=URL.createObjectURL(blob), a=document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+const espera = ms => new Promise(r=>setTimeout(r,ms));
+(async()=>{
+  await null;
+  try{ if(window.claude){ const [s,d] = await Promise.all([claude.use("sample"), claude.use("downloads")]); sampleFn=s; downloadsNs=d; } }catch(e){}
+  capsReady=true; render();
+})();
+
+const scripts={};
+function loadScript(src){ if(!scripts[src]) scripts[src]=new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("Não foi possível carregar "+src)); document.head.appendChild(s); }); return scripts[src]; }
+
+/* ================== RENDER ================== */
+const ICON={
+  professor:'<path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3z"/><path d="M8 9h6M8 13h6"/>',
+  provas:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8l1.5 1.5L13 7M9 14h6M9 17h4"/>',
+  secretaria:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  padrao:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'
+};
+function renderTabs(){
+  const naoLidos = S.emails.filter(e=>!e.lido).length;
+  const tabs=[["professor","Diário do professor","Diário"],["provas","Provas e correção","Provas"],["secretaria","Secretaria","Secretaria"],["painel","Painel da direção","Painel"],["padrao","Padrão da apostila","Padrão"]];
+  $("#tabs").innerHTML = tabs.map(([v,l,s])=>`<button class="tab" data-view="${v}" ${S.ui.view===v?'aria-current="page"':""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[v]}</svg><span class="tl-l">${l}</span><span class="tl-s">${s}</span>${v==="secretaria"&&naoLidos?`<span class="badge">${naoLidos}</span>`:""}</button>`).join("");
+}
+function render(){
+  renderTabs();
+  $("#escola-nome").textContent = S.config.escola;
+  const m=$("#main");
+  const siteNote = SITE ? `<div class="alert warn" style="margin-bottom:12px;font-size:13.5px"><b>Site de demonstração:</b> dados fictícios, salvos só neste aparelho. A IA está desligada aqui e mostra resultados já gerados por ela nos exemplos (aulas Respiração celular e Revolução Industrial, e a foto de exemplo da prova). Na versão final, tudo é gerado na hora.</div>` : "";
+  if(S.ui.view==="professor") m.innerHTML=siteNote+viewProfessor();
+  else if(S.ui.view==="secretaria") m.innerHTML=siteNote+viewSecretaria();
+  else if(S.ui.view==="provas"){ m.innerHTML=siteNote+viewProvas(); hydrateProvas(); }
+  else if(S.ui.view==="painel") m.innerHTML=siteNote+viewPainel();
+  else m.innerHTML=siteNote+viewPadrao();
+}
+
+function viewProfessor(){
+  const prof = profById(S.ui.profId);
+  const turmas = S.turmas.filter(t=>t.profId===prof.id);
+  let aula = aulaById(S.ui.aulaId);
+  if(!aula || !turmas.some(t=>t.id===aula.turmaId)){ aula = S.aulas.find(a=>turmas.some(t=>t.id===a.turmaId)); S.ui.aulaId=aula?.id; }
+  const side = `
+  <aside class="panel">
+    <div class="side-sec">
+      <label class="label" for="prof-sel">Professor(a) conectado(a)</label>
+      <select class="select" id="prof-sel" style="margin-top:6px">${S.professores.map(p=>`<option value="${p.id}" ${p.id===prof.id?"selected":""}>${esc(p.nome)} · ${esc(p.disc)}</option>`).join("")}</select>
+    </div>
+    <div class="side-sec">
+      ${turmas.map(t=>`
+        <div class="turma">${esc(t.nome)} <span>· ${esc(t.disciplina)} · ${t.alunos.length} alunos</span></div>
+        ${S.aulas.filter(a=>a.turmaId===t.id).sort((x,y)=>x.data.localeCompare(y.data)).map(a=>{
+          const [y,mm,dd]=a.data.split("-"); const nf=Object.values(a.chamada).filter(v=>v==="F").length;
+          return `<button class="aula-item" data-aula="${a.id}" aria-current="${a.id===aula?.id}">
+            <div class="date-chip">${dd}<small>${MESES[+mm-1]}</small></div>
+            <div><div class="t">${esc(a.tema)}</div><div class="pills">
+              ${a.salva?`<span class="pill ok">Chamada feita</span>`:`<span class="pill warn">Chamada pendente</span>`}
+              ${a.salva&&nf?`<span class="pill bad">${nf} falta${nf>1?"s":""}</span>`:""}
+              ${a.material?"":`<span class="pill">Sem material</span>`}
+              ${a.enviados.length?`<span class="pill ac">Apostila enviada</span>`:""}
+            </div></div></button>`;}).join("")}
+        <button class="btn small ghost" data-nova="${t.id}" style="margin:2px 0 8px">+ Nova aula em ${esc(t.nome)}</button>
+      `).join("")}
+    </div>
+  </aside>`;
+  return `<div class="demo-note"><b>Demonstração:</b> marque uma ou mais faltas na chamada e clique em <b>Salvar chamada</b>. A IA lê o material da aula, gera a apostila de reposição e envia um PDF com o nome de cada aluno para a Secretaria.</div>
+  <div class="layout">${side}<div class="stack">${mobPick("aula",prof,turmas,aula)}${aula?viewAula(aula):'<div class="panel panel-b">Nenhuma aula.</div>'}</div></div>`;
+}
+
+function mobPick(tipo, prof, turmas, cur){
+  const itens = tipo==="aula" ? S.aulas : S.provas;
+  const opts = turmas.map(t=>`<optgroup label="${esc(t.nome)} · ${esc(t.disciplina)}">${itens.filter(x=>x.turmaId===t.id).sort((a,b)=>a.data.localeCompare(b.data)).map(x=>`<option value="${x.id}" ${x.id===cur?.id?"selected":""}>${fmtCurta(x.data)} · ${esc(tipo==="aula"?x.tema:x.titulo)}</option>`).join("")}</optgroup>`).join("");
+  const tId = cur?.turmaId || turmas[0]?.id;
+  return `<div class="mob-pick">
+    <select class="select" id="prof-sel-m" aria-label="Professor(a) conectado(a)">${S.professores.map(x=>`<option value="${x.id}" ${x.id===prof.id?"selected":""}>${esc(x.nome)} · ${esc(x.disc)}</option>`).join("")}</select>
+    <div style="display:flex;gap:8px"><select class="select" id="mob-${tipo}" aria-label="${tipo==="aula"?"Aula":"Prova"}">${opts}</select>
+    <button class="btn small" ${tipo==="aula"?`data-nova="${tId}"`:`data-novaprova="${tId}"`} style="white-space:nowrap">+ Nova</button></div></div>`;
+}
+function viewAula(a){
+  const t=turmaById(a.turmaId), prof=profById(t.profId);
+  const nf=Object.values(a.chamada).filter(v=>v==="F").length, np=t.alunos.length-nf;
+  const running = run && run.aulaId===a.id;
+  const mat = a.material ? `
+    <div class="material">
+      <div class="file-ic">${esc((a.material.nome.split(".").pop()||"").toUpperCase())}</div>
+      <div style="flex:1;min-width:180px"><div style="font-weight:600">${esc(a.material.nome)}</div>
+        <div class="sub" style="font-size:13px">${fmtTam(a.material.tamanho)} · ${a.material.texto.split(/\s+/).length.toLocaleString("pt-BR")} palavras lidas pelo sistema</div></div>
+      <label class="btn small" for="up-${a.id}">Substituir arquivo</label>
+      <input type="file" id="up-${a.id}" class="sr" data-upload="${a.id}" accept=".pdf,.docx,.txt,.md">
+    </div>
+    <details class="extract"><summary>Ver o texto que a IA vai ler</summary><pre>${esc(a.material.texto)}</pre></details>`
+  : `<div class="drop" data-drop="${a.id}">
+      <div style="font-weight:600;color:var(--ink)">Anexe o conteúdo desta aula</div>
+      <div style="font-size:13px;margin:4px 0 10px">PDF, Word (.docx) ou texto. Arraste o arquivo aqui ou</div>
+      <label class="btn small primary" for="up-${a.id}">Escolher arquivo</label>
+      <input type="file" id="up-${a.id}" class="sr" data-upload="${a.id}" accept=".pdf,.docx,.txt,.md">
+    </div>`;
+  const rows = t.alunos.map((al,i)=>{ const v=a.chamada[al.id]; return `<tr class="${v==="F"?"falta":""}">
+    <td class="num">${String(i+1).padStart(2,"0")}</td><td><div style="font-weight:600">${esc(al.nome)}</div><div class="sub" style="font-size:12px">${al.matricula}</div></td>
+    <td style="text-align:right"><div class="seg" role="group" aria-label="Presença de ${esc(al.nome)}">
+      <button class="p" data-pres="${al.id}" data-v="P" aria-pressed="${v==="P"}" ${running?"disabled":""}>Presente</button><button class="f" data-pres="${al.id}" data-v="F" aria-pressed="${v==="F"}" ${running?"disabled":""}>Falta</button>
+    </div></td></tr>`;}).join("");
+  return `
+  <div class="aula-head"><div style="flex:1;min-width:240px">
+    <div class="label">${esc(t.nome)} · ${esc(t.disciplina)} · Prof(a). ${esc(prof.nome)}</div>
+    <h1>${esc(a.tema)}</h1><div class="sub">Aula de ${fmtData(a.data)}</div></div></div>
+  <section class="panel"><div class="panel-h"><h2>Conteúdo da aula</h2><span class="sub" style="font-size:13px">É deste material que a IA monta a apostila de quem faltou.</span></div><div class="panel-b">${mat}</div></section>
+  <section class="panel">
+    <div class="panel-h"><h2>Chamada</h2><span class="pill ok">${np} presentes</span><span class="pill ${nf?"bad":""}">${nf} falta${nf===1?"":"s"}</span>
+      <div class="spacer"></div><button class="btn small ghost" data-todos="${a.id}" ${running?"disabled":""}>Marcar todos presentes</button></div>
+    <div class="scroll-x"><table class="chamada"><thead><tr><th>Nº</th><th>Aluno</th><th style="text-align:right">Presença</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="foot"><span class="sub" style="font-size:13px;flex:1;min-width:200px">${a.salva?"Chamada salva. Ao salvar de novo, só os novos faltosos recebem apostila.":"A chamada ainda não foi salva."}</span>
+      <button class="btn primary" data-salvar="${a.id}" ${running?"disabled":""}>Salvar chamada</button></div>
+  </section>
+  ${pipelinePanel(a)}`;
+}
+
+function pipelinePanel(a){
+  if(run && run.aulaId===a.id){
+    return `<section class="panel"><div class="panel-h"><h2>Gerando apostila de reposição</h2><div class="spacer"></div>${run.done||run.error?"":`<button class="btn small" id="stop">Parar</button>`}</div>
+    <div class="panel-b"><ol class="steps">${run.steps.map((s,i)=>`<li class="step ${s.state}"><div class="dot">${s.state==="done"?"✓":s.state==="err"?"!":s.state==="run"?"":i+1}</div><div><div class="st">${esc(s.t)}</div>${s.d?`<div class="sd">${esc(s.d)}</div>`:""}${s.stream?`<div class="stream" id="stream">${esc(run.streamTail||"Pensando…")}</div>`:""}</div></li>`).join("")}</ol>
+    ${run.error?`<div class="alert err" style="margin-top:14px">${esc(run.error)}</div>`:""}
+    ${run.warn?`<div class="alert warn" style="margin-top:14px">${run.warn}</div>`:""}
+    ${run.done?`<div class="alert ok" style="margin-top:14px">Pronto. ${run.n} apostila${run.n>1?"s":""} enviada${run.n>1?"s":""} para ${esc(S.config.emailSecretaria)}. <button class="btn small" data-goto="secretaria">Abrir a caixa da Secretaria</button></div>`:""}
+    </div></section>`;
+  }
+  if(a.apostila){
+    return `<section class="panel"><div class="panel-h"><h2>Apostila de reposição desta aula</h2><div class="spacer"></div><button class="btn small" data-preview="${a.id}">Ver apostila</button></div>
+    <div class="panel-b"><div style="margin-bottom:6px">${esc(a.apostila.titulo)}</div><div class="sub" style="font-size:13px">Enviada para: ${a.enviados.map(id=>esc(alunoById(id)?.nome)).join(", ")||"ninguém ainda"}</div></div></section>`;
+  }
+  return "";
+}
+
+function viewSecretaria(){
+  const emails=[...S.emails].sort((x,y)=>y.quando.localeCompare(x.quando));
+  if(!emails.length) return `<div class="panel"><div class="empty">Nenhum e-mail ainda. Quando um professor salvar uma chamada com falta, a apostila chega aqui.</div></div>`;
+  let cur = S.emails.find(e=>e.id===S.ui.emailId) || emails[0];
+  if(cur && !cur.lido){ cur.lido=true; save(); setTimeout(renderTabs,0); }
+  const list = emails.map(e=>{ const a=aulaById(e.aulaId), t=turmaById(a.turmaId); return `<button class="mail-item ${e.lido?"":"unread"}" data-email="${e.id}" aria-current="${e.id===cur.id}">
+    <div class="mi-top"><span>EduDiário</span><span>${new Date(e.quando).toLocaleDateString("pt-BR")}</span></div>
+    <div class="mi-s">${esc(assunto(e))}</div><div class="mi-p">${e.alunos.map(id=>esc(alunoById(id)?.nome)).join(", ")}</div></button>`; }).join("");
+  const a=aulaById(cur.aulaId), t=turmaById(a.turmaId), prof=profById(t.profId);
+  const atts = cur.alunos.map(id=>{ const al=alunoById(id); const imp=cur.impressos[id]; return `<div class="att"><div class="pdf">PDF</div><div><div class="n">${esc(nomeArquivo(al,a))}</div><div class="m">${imp?'<span class="pill ok">Impresso</span>':"Pronto para imprimir"}</div></div>
+    <div class="att-actions"><button class="btn small" data-abrir="${cur.id}|${id}">Abrir</button></div></div>`; }).join("");
+  return `<div class="demo-note"><b>Demonstração:</b> esta tela simula a caixa de e-mail da secretária. Na versão final, a mensagem chega no e-mail real (${esc(S.config.emailSecretaria)}) com os PDFs anexados.</div>
+  <div class="panel mail"><div class="mail-list">${list}</div>
+  <div class="mail-view"><h2>${esc(assunto(cur))}</h2>
+    <div class="hdr"><span>De:</span><span>EduDiário &lt;nao-responda@${esc(S.config.emailSecretaria.split("@")[1]||"escola.edu.br")}&gt;</span><span>Para:</span><span>${esc(S.config.emailSecretaria)}</span><span>Data:</span><span>${fmtQuando(cur.quando)}</span></div>
+    <div class="mail-body">Olá,
+
+Na aula de ${fmtData(a.data)} de ${esc(t.disciplina)} (${esc(t.nome)}, Prof(a). ${esc(prof.nome)}), sobre "${esc(a.tema)}", ${cur.alunos.length===1?"o aluno abaixo faltou":"os alunos abaixo faltaram"}:
+${cur.alunos.map(id=>"• "+esc(alunoById(id)?.nome)).join("\n")}
+
+Seguem em anexo as apostilas de reposição, uma por aluno, já com o nome. Cada uma traz o resumo do conteúdo para estudo individual, questões objetivas, questões dissertativas e um mapa mental.${S.config.gabarito?" O gabarito está na última página: destaque antes de entregar ao aluno.":""}
+
+Por favor, imprima e entregue ${cur.alunos.length===1?"ao aluno":"aos alunos"}.
+
+EduDiário · ${esc(S.config.escola)}</div>
+    <div class="label" style="margin-bottom:8px">${cur.alunos.length} anexo${cur.alunos.length>1?"s":""}</div>
+    <div class="attach">${atts}</div>
+  </div></div>`;
+}
+function assunto(e){ const a=aulaById(e.aulaId), t=turmaById(a.turmaId); return `Reposição de conteúdo · ${t.nome} · ${t.disciplina} · ${a.tema} (${fmtCurta(a.data)})`; }
+function nomeArquivo(al,a){ return `Apostila_${slug(al.nome)}_${slug(a.tema)}.pdf`; }
+
+function viewPainel(){
+  const linhas=[]; S.emails.forEach(e=>e.alunos.forEach(id=>linhas.push({e,id})));
+  const faltas = S.aulas.filter(a=>a.salva).reduce((s,a)=>s+Object.values(a.chamada).filter(v=>v==="F").length,0);
+  const imp = linhas.filter(l=>l.e.impressos[l.id]).length;
+  const aulasSemMat = S.aulas.filter(a=>!a.material).length;
+  linhas.sort((x,y)=>y.e.quando.localeCompare(x.e.quando));
+  return `<div class="tiles">
+    <div class="tile"><div class="v">${faltas}</div><div class="k">Faltas registradas</div></div>
+    <div class="tile"><div class="v">${linhas.length}</div><div class="k">Apostilas geradas e enviadas</div></div>
+    <div class="tile"><div class="v">${linhas.length-imp}</div><div class="k">Aguardando impressão</div></div>
+    <div class="tile"><div class="v">${aulasSemMat}</div><div class="k">Aulas sem material anexado</div></div>
+    <div class="tile"><div class="v">${S.provas.reduce((s,p)=>s+Object.values(resultadosDe(p.id)).filter(r=>r.status==="confirmada").length,0)}</div><div class="k">Provas corrigidas por foto e confirmadas</div></div>
+  </div>
+  <section class="panel"><div class="panel-h"><h2>Apostilas de reposição</h2></div>
+  <div class="scroll-x"><table class="list"><thead><tr><th>Aluno</th><th>Turma</th><th>Aula</th><th>Enviada em</th><th>Situação</th></tr></thead><tbody>
+  ${linhas.map(({e,id})=>{ const a=aulaById(e.aulaId), t=turmaById(a.turmaId); return `<tr><td>${esc(alunoById(id)?.nome)}</td><td>${esc(t.nome)} · ${esc(t.disciplina)}</td><td>${esc(a.tema)} (${fmtCurta(a.data)})</td><td>${fmtQuando(e.quando)}</td><td>${e.impressos[id]?'<span class="pill ok">Impressa</span>':'<span class="pill warn">Enviada à secretaria</span>'}</td></tr>`; }).join("")||`<tr><td colspan="5" class="sub">Nenhuma apostila ainda.</td></tr>`}
+  </tbody></table></div></section>`;
+}
+
+function viewPadrao(){
+  const c=S.config;
+  return `<div class="stack">
+  <section class="panel"><div class="panel-h"><h2>Estrutura fixa da apostila de reposição</h2></div><div class="panel-b">
+    <p class="sub" style="margin-top:0;max-width:70ch">Toda apostila sai no mesmo padrão, para qualquer disciplina. A IA usa apenas o material que o professor anexou à aula, e o resumo cobre todo o conteúdo, para que o aluno consiga estudar sozinho antes de responder.</p>
+    <div class="parts">
+      <div class="part"><b>1. Estude o conteúdo</b><p>Objetivos da aula, resumo explicado em seções e quadro de conceitos-chave.</p></div>
+      <div class="part"><b>2. Questões objetivas</b><p>${c.objetivas} questões de múltipla escolha (A a D).</p></div>
+      <div class="part"><b>3. Questões dissertativas</b><p>${c.dissertativas} questões com linhas para resposta.</p></div>
+      <div class="part"><b>4. Mapa mental</b><p>O tema no centro e os tópicos principais em ramos.</p></div>
+      <div class="part"><b>Gabarito</b><p>${c.gabarito?"Na última página, para destacar antes de entregar.":"Desativado."}</p></div>
+    </div></div></section>
+  <section class="panel"><div class="panel-h"><h2>Configurações</h2></div><div class="panel-b"><div class="form-grid">
+    <div class="field"><label for="cf-escola">Nome da instituição</label><input id="cf-escola" data-cf="escola" value="${esc(c.escola)}"></div>
+    <div class="field"><label for="cf-email">E-mail da secretaria</label><input id="cf-email" type="email" data-cf="emailSecretaria" value="${esc(c.emailSecretaria)}"><div class="h">Para onde vão as apostilas.</div></div>
+    <div class="field"><label for="cf-obj">Questões objetivas</label><select id="cf-obj" data-cf="objetivas">${[3,4,5,6,8,10].map(n=>`<option ${n===c.objetivas?"selected":""}>${n}</option>`).join("")}</select></div>
+    <div class="field"><label for="cf-dis">Questões dissertativas</label><select id="cf-dis" data-cf="dissertativas">${[1,2,3,4,5].map(n=>`<option ${n===c.dissertativas?"selected":""}>${n}</option>`).join("")}</select></div>
+    <div class="field"><label for="cf-gab">Gabarito</label><select id="cf-gab" data-cf="gabarito"><option value="1" ${c.gabarito?"selected":""}>Incluir na última página</option><option value="0" ${!c.gabarito?"selected":""}>Não incluir</option></select></div>
+  </div><p class="sub" style="font-size:13px;margin-bottom:0">As mudanças valem para as próximas apostilas geradas.</p></div></section>
+  </div>`;
+}
+
+/* ================== APOSTILA (HTML DO DOCUMENTO) ================== */
+function wrap(text,max){ const words=String(text).split(/\s+/); const lines=[]; let l=""; for(const w of words){ if(!l) l=w; else if((l+" "+w).length<=max) l+=" "+w; else { lines.push(l); l=w; } } if(l) lines.push(l); return lines; }
+function mapaSVG(mm){
+  const W=700, BW=214, cores=["#1f6f6a","#d98e1c","#7a5cc2","#2f7d3e","#b33a2e","#2b5fa8","#8a6d1f","#4a7f8c"];
+  const ramos=(mm.ramos||[]).slice(0,8);
+  const boxes=ramos.map((r,i)=>{ const tl=wrap(r.titulo,26); const its=(r.itens||[]).slice(0,4).map(x=>wrap(x,34)); const h=14+tl.length*16+its.reduce((s,x)=>s+x.length*14,0)+(its.length?6:0)+8; return {r,i,tl,its,h,cor:cores[i%cores.length],side:i%2===0?"R":"L"}; });
+  const cols={L:boxes.filter(b=>b.side==="L"),R:boxes.filter(b=>b.side==="R")};
+  const gap=16; const colH=k=>cols[k].reduce((s,b)=>s+b.h,0)+gap*Math.max(0,cols[k].length-1);
+  const H=Math.max(280,Math.max(colH("L"),colH("R"))+40);
+  for(const k of ["L","R"]){ let y=(H-colH(k))/2; cols[k].forEach(b=>{ b.y=y; b.x=k==="L"?6:W-BW-6; y+=b.h+gap; }); }
+  const cx=W/2, cy=H/2, ctl=wrap(mm.centro||"Tema",16).slice(0,3);
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="'Source Sans 3', Arial, sans-serif">`;
+  boxes.forEach(b=>{ const bx=b.side==="L"?b.x+BW:b.x, by=b.y+b.h/2, sx=b.side==="L"?cx-92:cx+92; const mx=(sx+bx)/2;
+    s+=`<path d="M${sx},${cy} C${mx},${cy} ${mx},${by} ${bx},${by}" fill="none" stroke="${b.cor}" stroke-width="2.5"/>`; });
+  boxes.forEach(b=>{ s+=`<rect x="${b.x}" y="${b.y}" width="${BW}" height="${b.h}" rx="8" fill="#fff" stroke="${b.cor}" stroke-width="2"/><rect x="${b.x}" y="${b.y}" width="${BW}" height="${10+b.tl.length*16}" rx="8" fill="${b.cor}"/><rect x="${b.x}" y="${b.y+b.tl.length*16}" width="${BW}" height="10" fill="${b.cor}"/>`;
+    let y=b.y+19; b.tl.forEach(l=>{ s+=`<text x="${b.x+10}" y="${y}" font-size="13" font-weight="700" fill="#fff">${esc(l)}</text>`; y+=16; });
+    y+=8; b.its.forEach(lines=>{ lines.forEach((l,j)=>{ s+=`<text x="${b.x+(j?20:10)}" y="${y}" font-size="11.5" fill="#222">${j?"":"• "}${esc(l)}</text>`; y+=14; }); }); });
+  s+=`<ellipse cx="${cx}" cy="${cy}" rx="96" ry="${30+ctl.length*9}" fill="#16223b"/>`;
+  ctl.forEach((l,i)=>{ s+=`<text x="${cx}" y="${cy+5+(i-(ctl.length-1)/2)*18}" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">${esc(l)}</text>`; });
+  return s+"</svg>";
+}
+function paras(t){ return String(t||"").split(/\n+/).filter(Boolean).map(p=>`<p>${esc(p)}</p>`).join(""); }
+function apostilaHTML(ap, aula, aluno, exportMode){
+  const t=turmaById(aula.turmaId), prof=profById(t.profId), c=S.config, L="ABCDEFGH";
+  const nome = aluno ? aluno.nome : "Nome do aluno";
+  return `<div class="doc${exportMode?" export":""}">
+  <div class="doc-top"><div><div class="esc">${esc(c.escola)}</div><h1>Apostila de Reposição de Conteúdo</h1></div><div class="tag">ESTUDO INDIVIDUAL</div></div>
+  <table class="info"><tr><td colspan="2"><b>Aluno(a)</b><span class="aluno">${esc(nome)}</span></td><td><b>Matrícula</b>${esc(aluno?.matricula||"—")}</td></tr>
+  <tr><td><b>Turma</b>${esc(t.nome)}</td><td><b>Disciplina</b>${esc(t.disciplina)} · Prof(a). ${esc(prof.nome)}</td><td><b>Aula perdida</b>${fmtData(aula.data)}</td></tr>
+  <tr><td colspan="2"><b>Tema</b>${esc(aula.tema)}</td><td><b>Entregar até</b>____/____/______</td></tr></table>
+  <div class="instr">Você faltou à aula de <b>${fmtData(aula.data)}</b>. Leia com atenção a <b>Parte 1</b>, que traz todo o conteúdo trabalhado em sala. Depois responda às questões das Partes 2 e 3 e complete seu estudo com o mapa mental da Parte 4. Em caso de dúvida, procure o(a) professor(a).</div>
+  <div class="parte">Parte 1 · Estude o conteúdo</div>
+  <h2>${esc(ap.titulo)}</h2>
+  ${ap.objetivos?.length?`<h3>Ao final desta apostila você deve saber:</h3><ul>${ap.objetivos.map(o=>`<li>${esc(o)}</li>`).join("")}</ul>`:""}
+  ${(ap.resumo||[]).map((s,i)=>`<div class="sec-block"><h3>${i+1}. ${esc(s.titulo)}</h3>${paras(s.texto)}</div>`).join("")}
+  ${ap.conceitos?.length?`<div class="sec-block"><h3>Conceitos-chave</h3><table class="conceitos">${ap.conceitos.map(k=>`<tr><td>${esc(k.termo)}</td><td>${esc(k.definicao)}</td></tr>`).join("")}</table></div>`:""}
+  <div class="parte">Parte 2 · Questões objetivas</div>
+  <p class="exp">Marque um X na alternativa correta.</p>
+  ${(ap.objetivas||[]).map((q,i)=>`<div class="q"><div class="en"><span>${i+1}.</span>${esc(q.enunciado)}</div><ul class="alts">${(q.alternativas||[]).map((x,j)=>`<li><b>${L[j]}</b><span>${esc(x)}</span></li>`).join("")}</ul></div>`).join("")}
+  <div class="parte">Parte 3 · Questões dissertativas</div>
+  <p class="exp">Responda com suas palavras, em frases completas.</p>
+  ${(ap.dissertativas||[]).map((q,i)=>`<div class="q"><div class="en"><span>${(ap.objetivas||[]).length+i+1}.</span>${esc(q.enunciado)}</div><div class="lines">${"<div></div>".repeat(6)}</div></div>`).join("")}
+  <div class="parte">Parte 4 · Mapa mental</div>
+  <p class="exp">Use o mapa para revisar. Se quiser, acrescente ramos com o que você aprendeu.</p>
+  <div class="mm">${mapaSVG(ap.mapa_mental||{centro:aula.tema,ramos:[]})}</div>
+  ${c.gabarito?`<div class="gabarito"><div class="gab-tag">Destacar antes de entregar ao aluno · uso do professor e da secretaria</div><h2 style="margin-top:4px">Gabarito</h2>
+    <div class="gab-grid">${(ap.objetivas||[]).map((q,i)=>`<div><b>${i+1}</b> · ${L[q.correta]??"?"}</div>`).join("")}</div>
+    ${(ap.objetivas||[]).map((q,i)=>q.explicacao?`<p class="exp"><b>${i+1}.</b> ${esc(q.explicacao)}</p>`:"").join("")}
+    <h3>Respostas esperadas (dissertativas)</h3>
+    ${(ap.dissertativas||[]).map((q,i)=>`<p class="exp"><b>${(ap.objetivas||[]).length+i+1}.</b> ${esc(q.resposta_esperada)}</p>`).join("")}</div>`:""}
+  <div class="doc-foot"><span>${esc(c.escola)} · ${esc(t.disciplina)} · ${esc(t.nome)}</span><span>Gerado pelo EduDiário a partir do material da aula</span></div>
+  </div>`;
+}
+
+/* ================== MODAIS ================== */
+function openPreview(aulaId, alunoId, emailId){
+  const a=aulaById(aulaId), al=alunoId?alunoById(alunoId):null;
+  const e = emailId ? S.emails.find(x=>x.id===emailId) : null;
+  $("#modal-root").innerHTML = `<div class="modal" id="mdl" role="dialog" aria-modal="true" aria-label="Apostila"><div class="modal-card">
+    <div class="modal-bar"><h3>${al?esc(nomeArquivo(al,a)):"Apostila de reposição · "+esc(a.tema)}</h3><div class="spacer"></div>
+      ${podeBaixar()?`<button class="btn small primary" id="dl-pdf" data-aula="${aulaId}" data-aluno="${alunoId||""}">Baixar PDF para imprimir</button>`:""}
+      ${e&&al?`<button class="btn small" id="mk-imp" data-e="${e.id}" data-a="${al.id}">${e.impressos[al.id]?"Desmarcar impresso":"Marcar como impresso"}</button>`:""}
+      <button class="btn small" id="close-mdl">Fechar</button></div>
+    <div class="modal-body">${apostilaHTML(a.apostila,a,al,false)}</div></div></div>`;
+  $("#close-mdl").focus();
+}
+function closeModal(){ $("#modal-root").innerHTML=""; }
+function openNovaAula(turmaId){
+  const t=turmaById(turmaId);
+  $("#modal-root").innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="Nova aula"><div class="modal-card small-modal">
+    <div class="modal-bar"><h3>Nova aula · ${esc(t.nome)} · ${esc(t.disciplina)}</h3></div>
+    <form class="modal-body" id="form-aula">
+      <div class="field"><label for="na-tema">Tema da aula</label><input id="na-tema" required placeholder="Ex.: Sistema circulatório"></div>
+      <div class="field"><label for="na-data">Data</label><input id="na-data" type="date" required value="2026-11-02"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn" id="close-mdl">Cancelar</button><button class="btn primary" type="submit">Criar aula</button></div>
+    </form></div></div>`;
+  $("#na-tema").focus();
+  $("#form-aula").onsubmit = ev => { ev.preventDefault(); const id="au"+Date.now(); S.aulas.push({id,turmaId,data:$("#na-data").value,tema:$("#na-tema").value.trim(),material:null,chamada:Object.fromEntries(t.alunos.map(a=>[a.id,"P"])),salva:false,apostila:null,enviados:[]}); S.ui.aulaId=id; save(); closeModal(); render(); };
+}
+
+/* ================== UPLOAD / EXTRAÇÃO ================== */
+async function extrairTexto(file){
+  const ext=(file.name.split(".").pop()||"").toLowerCase();
+  if(ext==="txt"||ext==="md") return await file.text();
+  if(ext==="pdf"){
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js");
+    const pdf = await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+    let out=[];
+    for(let p=1;p<=Math.min(pdf.numPages,80);p++){ const pg=await pdf.getPage(p); const tc=await pg.getTextContent(); let line="", lastY=null; const ls=[];
+      tc.items.forEach(it=>{ const y=Math.round(it.transform[5]); if(lastY!==null && Math.abs(y-lastY)>2){ ls.push(line); line=""; } line+=it.str; lastY=y; }); ls.push(line); out.push(ls.join("\n")); }
+    return out.join("\n\n");
+  }
+  if(ext==="docx"){
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
+    const r = await mammoth.extractRawText({arrayBuffer: await file.arrayBuffer()});
+    return r.value;
+  }
+  throw new Error("Formato não aceito. Use PDF, Word (.docx) ou texto (.txt).");
+}
+async function onUpload(aulaId, file){
+  if(!file) return;
+  toast("Lendo "+file.name+"…");
+  try{
+    const texto=(await extrairTexto(file)).replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+    if(texto.split(/\s+/).length<40) throw new Error("Quase não há texto neste arquivo. Se for um PDF escaneado (imagem), envie uma versão com texto selecionável.");
+    const a=aulaById(aulaId); a.material={nome:file.name,tamanho:file.size,texto}; a.apostila=null; save(); render(); toast("Material anexado à aula.");
+  }catch(e){ toast(e.message||"Não foi possível ler o arquivo."); }
+}
+
+/* ================== IA: GERAR APOSTILA ================== */
+function promptApostila(aula){
+  const t=turmaById(aula.turmaId), c=S.config;
+  return `Você é um(a) professor(a) experiente de ${t.disciplina} do ${t.serie}, no Brasil. Um aluno faltou à aula sobre "${aula.tema}" e vai estudar SOZINHO, em casa, usando uma apostila impressa. Crie essa apostila a partir EXCLUSIVAMENTE do material da aula abaixo.
+
+REGRAS
+- Português do Brasil, linguagem clara e adequada ao ${t.serie}, falando diretamente com o aluno.
+- "resumo": deve cobrir TODO o conteúdo do material, sem pular tópicos, explicado de forma didática para quem não assistiu à aula. Use de 4 a 7 seções; cada "texto" com 1 a 3 parágrafos separados por \\n. Inclua exemplos e fórmulas/datas que estejam no material.
+- Não invente conteúdo que não esteja no material. Todas as questões devem poder ser respondidas com o resumo.
+- "objetivas": exatamente ${c.objetivas} questões, cada uma com 4 alternativas (sem letras no texto), "correta" é o índice 0 a 3; varie a posição da correta; "explicacao" em 1 frase.
+- "dissertativas": exatamente ${c.dissertativas} questões que peçam explicação, comparação ou aplicação; "resposta_esperada" em 1 a 3 frases.
+- "conceitos": 5 a 8 termos importantes com definição curta (até 15 palavras).
+- "mapa_mental": "centro" com até 3 palavras; 4 a 6 "ramos", cada um com "titulo" curto e 2 a 3 "itens" de no máximo 6 palavras.
+
+Responda SOMENTE com um objeto JSON neste formato:
+{"titulo":"...","objetivos":["..."],"resumo":[{"titulo":"...","texto":"..."}],"conceitos":[{"termo":"...","definicao":"..."}],"objetivas":[{"enunciado":"...","alternativas":["...","...","...","..."],"correta":0,"explicacao":"..."}],"dissertativas":[{"enunciado":"...","resposta_esperada":"..."}],"mapa_mental":{"centro":"...","ramos":[{"titulo":"...","itens":["...","..."]}]}}
+
+MATERIAL DA AULA (${aula.material.nome}):
+"""
+${aula.material.texto.slice(0,60000)}
+"""`;
+}
+function validar(ap){
+  if(!ap || typeof ap!=="object" || !Array.isArray(ap.resumo) || !Array.isArray(ap.objetivas)) throw {code:"invalid_json"};
+  ap.objetivas.forEach(q=>{ q.alternativas=(q.alternativas||[]).slice(0,5).map(x=>String(x).replace(/^\s*[A-Ea-e][\)\.]\s*/,"")); q.correta=Math.min(Math.max(0,parseInt(q.correta)||0),q.alternativas.length-1); });
+  ap.dissertativas=ap.dissertativas||[]; ap.conceitos=ap.conceitos||[]; ap.objetivos=ap.objetivos||[];
+  ap.mapa_mental=ap.mapa_mental||{centro:"",ramos:[]};
+  return ap;
+}
+const ERROS={not_granted:"A geração com IA não foi autorizada nesta visualização. Recarregue a página e permita o uso do Claude para ver a demonstração.",sampling_disabled:"A IA não está disponível nesta conta.",rate_limited:"Muitos pedidos seguidos ou limite de uso atingido. Aguarde um pouco e salve a chamada de novo.",prompt_too_large:"O material da aula é grande demais. Envie um arquivo menor.",invalid_json:"A IA respondeu num formato inesperado. Salve a chamada de novo para tentar outra vez.",session_expired:"Sua sessão expirou. Entre de novo no Claude.",refused:"A IA não conseguiu gerar a apostila com este material.",empty_completion:"A IA não devolveu conteúdo. Tente de novo."};
+
+async function salvarChamada(aulaId){
+  const a=aulaById(aulaId), t=turmaById(a.turmaId);
+  a.salva=true;
+  const faltosos=t.alunos.filter(al=>a.chamada[al.id]==="F").map(al=>al.id);
+  const novos=faltosos.filter(id=>!a.enviados.includes(id));
+  save();
+  if(!novos.length){ run=null; render(); toast(faltosos.length?"Chamada salva. Os faltosos já tinham recebido apostila.":"Chamada salva. Ninguém faltou."); return; }
+  run={aulaId, steps:[
+    {t:`Falta registrada: ${novos.length} aluno${novos.length>1?"s":""}`, d:novos.map(id=>alunoById(id).nome).join(", "), state:"done"},
+    {t:"Lendo o material da aula", d:a.material?a.material.nome:"", state:"run"},
+    {t:"IA gerando a apostila", d:"Resumo do conteúdo, questões objetivas, dissertativas e mapa mental", state:"", stream:false},
+    {t:"Montando um documento por aluno", d:"", state:""},
+    {t:"Enviando para a Secretaria", d:S.config.emailSecretaria, state:""}
+  ]};
+  render();
+  if(!a.material){ run.steps[1].state="err"; run.steps[1].d="Esta aula não tem material anexado."; run.error="Anexe o conteúdo da aula (PDF, Word ou texto) e salve a chamada de novo. A chamada já foi salva."; render(); return; }
+  await new Promise(r=>setTimeout(r,500));
+  run.steps[1].state="done"; run.steps[1].d=`${a.material.nome} · ${a.material.texto.split(/\s+/).length.toLocaleString("pt-BR")} palavras`;
+  let ap=a.apostila;
+  if(ap){ run.steps[2].state="done"; run.steps[2].d="Esta aula já tinha apostila gerada; o sistema reaproveita a mesma para os novos faltosos."; render(); }
+  else if(!sampleFn && capsReady && APOSTILAS_PRONTAS[a.id]){
+    run.steps[2].state="run"; render();
+    for(const f of ["Escrevendo o resumo do conteúdo","Separando os conceitos-chave","Criando questões objetivas","Criando questões dissertativas","Montando o mapa mental"]){ run.steps[2].d=f+"…"; const sd=document.querySelectorAll(".step .sd")[2]; if(sd) sd.textContent=run.steps[2].d; await espera(800); }
+    ap=JSON.parse(JSON.stringify(APOSTILAS_PRONTAS[a.id])); a.apostila=ap;
+    run.steps[2].state="done"; run.steps[2].d=`Exemplo já gerado pela IA · ${ap.resumo.length} seções de resumo · ${ap.objetivas.length} objetivas · ${ap.dissertativas.length} dissertativas · mapa mental`;
+  }
+  else{
+    if(!sampleFn){ run.steps[2].state="err"; run.error = capsReady?(SITE?"No site de demonstração a IA está desligada e mostra só exemplos prontos. Teste com as aulas Respiração celular (1º ano A) ou Revolução Industrial (2º ano B), com o material original.":"A IA não está disponível nesta visualização."):"Ainda conectando à IA. Aguarde alguns segundos e salve a chamada de novo."; render(); return; }
+    run.steps[2].state="run"; run.steps[2].stream=true; run.streamTail=""; render();
+    const ctl=new AbortController(); run.ctl=ctl;
+    const fases=[["\"mapa_mental\"","Montando o mapa mental"],["\"dissertativas\"","Criando questões dissertativas"],["\"objetivas\"","Criando questões objetivas"],["\"conceitos\"","Separando os conceitos-chave"],["\"resumo\"","Escrevendo o resumo do conteúdo"]];
+    try{
+      ap = await sampleFn.json(promptApostila(a),{signal:ctl.signal,cache:false,onText:({text})=>{
+        run.streamTail=text.slice(-600);
+        const f=fases.find(([k])=>text.includes(k)); run.steps[2].d=(f?f[1]:"Começando")+` · ${text.length.toLocaleString("pt-BR")} caracteres escritos`;
+        const st=document.getElementById("stream"); if(st) st.textContent=run.streamTail;
+        const sd=document.querySelectorAll(".step .sd")[2]; if(sd) sd.textContent=run.steps[2].d;
+      }});
+      ap=validar(ap);
+    }catch(e){
+      run.steps[2].state="err"; run.steps[2].stream=false;
+      if(e && e.code==="cancelled"){ run.error="Geração interrompida. A chamada foi salva; salve de novo para gerar a apostila."; }
+      else run.error=ERROS[e?.code]||"Falha temporária na IA. Salve a chamada de novo para tentar outra vez.";
+      render(); return;
+    }
+    a.apostila=ap; run.steps[2].state="done"; run.steps[2].stream=false; run.steps[2].d=`${ap.resumo.length} seções de resumo · ${ap.objetivas.length} objetivas · ${ap.dissertativas.length} dissertativas · mapa mental com ${(ap.mapa_mental.ramos||[]).length} ramos`;
+  }
+  run.steps[3].state="run"; render();
+  await new Promise(r=>setTimeout(r,600));
+  run.steps[3].state="done"; run.steps[3].d=novos.map(id=>nomeArquivo(alunoById(id),a)).join(" · ");
+  run.steps[4].state="run"; render();
+  await new Promise(r=>setTimeout(r,500));
+  const em={id:"e"+Date.now(),quando:new Date().toISOString(),aulaId,alunos:novos,lido:false,impressos:{}};
+  S.emails.push(em); a.enviados.push(...novos); S.ui.emailId=em.id;
+  run.steps[4].state="done"; run.done=true; run.n=novos.length; save(); render();
+}
+
+/* ================== PDF ================== */
+async function baixarPDF(aulaId, alunoId, btn){
+  const a=aulaById(aulaId), al=alunoId?alunoById(alunoId):null;
+  btn.disabled=true; const old=btn.textContent; btn.textContent="Gerando PDF…";
+  try{
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+    const root=$("#export-root"); root.innerHTML=apostilaHTML(a.apostila,a,al,true);
+    const el=root.firstElementChild;
+    const worker=html2pdf().set({margin:[12,12,14,12],filename:"x.pdf",image:{type:"jpeg",quality:0.95},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"],avoid:[".q",".sec-block",".info",".mm",".instr",".gab-grid","tr"],before:[".gabarito"]}}).from(el).toPdf();
+    await worker.get("pdf").then(pdf=>{ const n=pdf.internal.getNumberOfPages(); for(let i=1;i<=n;i++){ pdf.setPage(i); pdf.setFontSize(8); pdf.setTextColor(120); pdf.text(`${al?al.nome:""}  ·  ${a.tema}`,12,290); pdf.text(`Página ${i} de ${n}`,198,290,{align:"right"}); } });
+    const blob=await worker.outputPdf("blob");
+    root.innerHTML="";
+    await salvarArquivo(al?nomeArquivo(al,a):`Apostila_${slug(a.tema)}.pdf`, blob);
+    toast("PDF salvo.");
+  }catch(e){ if(e?.code!=="declined") toast(e?.message&&!e.code?e.message:"Não foi possível salvar o PDF."); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+}
+
+/* ================== PROVAS E CORREÇÃO ================== */
+const LIB_JSPDF="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+const LIB_QR="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";
+const LIB_JSQR="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
+const LETRAS="ABCDE";
+const fmtN = n => n==null||isNaN(n) ? "—" : (Math.round(n*100)/100).toLocaleString("pt-BR",{maximumFractionDigits:2});
+const provaById = id => S.provas.find(p=>p.id===id);
+const ptsDiss = q => (q.criterios||[]).reduce((s,c)=>s+(+c.pontos||0),0);
+const totalObj = p => p.objetivas.reduce((s,q)=>s+(+q.pontos||0),0);
+const totalProva = p => totalObj(p) + p.dissertativas.reduce((s,q)=>s+ptsDiss(q),0);
+const resultadosDe = id => (S.resultados[id] ||= {});
+function notaDe(p,r){
+  let o=0; p.objetivas.forEach((q,i)=>{ const m=r.objetivas?.[i]; if(m && m.marcada===q.correta) o+=(+q.pontos||0); });
+  let d=0, pend=false; p.dissertativas.forEach((q,i)=>{ const x=r.dissertativas?.[i]; const v=x?(x.nota_final ?? x.nota_sugerida):null; if(v==null) pend=true; else d+=+v; });
+  return {o,d,t:o+d,pend};
+}
+const fila=[];
+
+/* --- imagens (IndexedDB, com memória como reserva) --- */
+const IMG=new Map(); let idbP=null;
+function idb(){ if(!idbP) idbP=new Promise(res=>{ try{ const r=indexedDB.open("edudiario-img",1); r.onupgradeneeded=()=>r.result.createObjectStore("img"); r.onsuccess=()=>res(r.result); r.onerror=()=>res(null);}catch(e){res(null);} }); return idbP; }
+async function imgPut(k,v){ IMG.set(k,v); try{ const db=await idb(); if(db) db.transaction("img","readwrite").objectStore("img").put(v,k); }catch(e){} }
+async function imgGet(k){ if(IMG.has(k)) return IMG.get(k); try{ const db=await idb(); if(!db) return null; return await new Promise(res=>{ const q=db.transaction("img").objectStore("img").get(k); q.onsuccess=()=>{ if(q.result) IMG.set(k,q.result); res(q.result||null); }; q.onerror=()=>res(null); }); }catch(e){ return null; } }
+async function imgClear(){ IMG.clear(); try{ const db=await idb(); if(db) db.transaction("img","readwrite").objectStore("img").clear(); }catch(e){} }
+
+/* --- layout da folha de respostas (milímetros, A4) --- */
+const MARCAS=[[14,14],[196,14],[14,283],[196,283]];
+function sheetLayout(p, aluno, t){
+  const it=[], bubbles=[], boxes=[];
+  [[10,10],[192,10],[10,279],[192,279]].forEach(([x,y])=>it.push({t:"rect",x,y,w:8,h:8,fill:1}));
+  it.push({t:"text",x:24,y:17,s:8,txt:S.config.escola.toUpperCase(),b:1});
+  it.push({t:"text",x:24,y:24.5,s:15,txt:"FOLHA DE RESPOSTAS",b:1});
+  it.push({t:"text",x:24,y:30.5,s:9.5,txt:p.titulo.slice(0,80)});
+  it.push({t:"rect",x:24,y:34,w:128,h:17,lw:0.3});
+  it.push({t:"text",x:27,y:38.5,s:7,txt:"ALUNO(A)",c:"#555555"});
+  it.push({t:"text",x:27,y:44.5,s:12,txt:aluno?aluno.nome:"",b:1});
+  it.push({t:"text",x:27,y:49,s:7.5,txt:`${t.nome} · ${t.disciplina} · Matrícula ${aluno?.matricula||"—"} · ${fmtData(p.data)}`});
+  const qr={t:"qr",x:158,y:15,size:30,data:`EDU|${p.id}|${aluno?aluno.id:"X"}`}; it.push(qr);
+  it.push({t:"text",x:173,y:49,s:6,txt:"não rabisque o código",al:"center",c:"#555555"});
+  let y=59; const n=p.objetivas.length;
+  if(n){
+    it.push({t:"text",x:24,y,s:9.5,txt:"PARTE 1 · OBJETIVAS",b:1});
+    it.push({t:"text",x:66,y,s:8,txt:"Pinte totalmente o círculo da alternativa escolhida, com caneta escura.",c:"#444444"});
+    const two=n>8, rows=two?Math.ceil(n/2):n, nAlt=Math.max(...p.objetivas.map(q=>q.alternativas.length));
+    for(let col=0;col<(two?2:1);col++){ const ox=col*92;
+      for(let j=0;j<nAlt;j++) it.push({t:"text",x:52+ox+j*11,y:y+6.5,s:8,txt:LETRAS[j],al:"center",b:1});
+      for(let r=0;r<rows;r++){ const i=col*rows+r; if(i>=n) break; const cy=y+12+r*8;
+        it.push({t:"text",x:24+ox,y:cy+1.3,s:9,txt:`Questão ${i+1}`});
+        p.objetivas[i].alternativas.forEach((_,j)=>{ const cx=52+ox+j*11; it.push({t:"circle",x:cx,y:cy,r:2.7,lw:0.35}); bubbles.push({q:i,j,x:cx,y:cy}); });
+      } }
+    y=y+12+rows*8+2;
+  }
+  const k=p.dissertativas.length;
+  if(k){ y+=4;
+    it.push({t:"text",x:24,y,s:9.5,txt:"PARTE 2 · DISSERTATIVAS",b:1});
+    it.push({t:"text",x:72,y,s:8,txt:"Escreva dentro do quadro, com letra legível.",c:"#444444"});
+    const top=y+3, bottom=273, gap=3, bh=(bottom-top-(k-1)*gap)/k;
+    for(let i=0;i<k;i++){ const by=top+i*(bh+gap);
+      it.push({t:"text",x:24,y:by+4,s:8.5,txt:`Questão ${n+i+1}`,b:1});
+      const box={x:22,y:by+5.5,w:166,h:bh-5.5}; boxes.push({k:i,...box});
+      it.push({t:"rect",...box,lw:0.35});
+      for(let ly=box.y+9; ly<box.y+box.h-2; ly+=8) it.push({t:"line",x1:box.x+3,y1:ly,x2:box.x+box.w-3,y2:ly,lw:0.12,c:"#c4c4c4"});
+    } }
+  it.push({t:"text",x:105,y:285,s:6.5,txt:"Para corrigir: fotografe a folha inteira, de cima, com os quatro quadrados pretos aparecendo.",al:"center",c:"#555555"});
+  return {it,bubbles,boxes,qr};
+}
+function qrMatrix(data){ const q=qrcode(0,"M"); q.addData(data); q.make(); const n=q.getModuleCount(); return {n,dark:(r,c)=>q.isDark(r,c)}; }
+function drawSheet(ctx, lay, ppm){
+  const m=v=>v*ppm; ctx.save(); ctx.fillStyle="#fff"; ctx.fillRect(0,0,m(210),m(297));
+  for(const e of lay.it){
+    const col=e.c||"#000000"; ctx.fillStyle=col; ctx.strokeStyle=col;
+    if(e.t==="rect"){ if(e.fill) ctx.fillRect(m(e.x),m(e.y),m(e.w),m(e.h)); else { ctx.lineWidth=Math.max(1,m(e.lw)); ctx.strokeRect(m(e.x),m(e.y),m(e.w),m(e.h)); } }
+    else if(e.t==="circle"){ ctx.lineWidth=Math.max(1,m(e.lw)); ctx.beginPath(); ctx.arc(m(e.x),m(e.y),m(e.r),0,Math.PI*2); ctx.stroke(); }
+    else if(e.t==="line"){ ctx.lineWidth=Math.max(0.6,m(e.lw)); ctx.beginPath(); ctx.moveTo(m(e.x1),m(e.y1)); ctx.lineTo(m(e.x2),m(e.y2)); ctx.stroke(); }
+    else if(e.t==="text"){ ctx.font=`${e.b?"700 ":""}${m(e.s*0.3528)}px Helvetica, Arial, sans-serif`; ctx.textAlign=e.al||"left"; ctx.textBaseline="alphabetic"; ctx.fillText(e.txt,m(e.x),m(e.y)); }
+    else if(e.t==="qr"){ const q=qrMatrix(e.data), c=e.size/q.n; ctx.fillStyle="#000"; for(let r=0;r<q.n;r++) for(let cc=0;cc<q.n;cc++) if(q.dark(r,cc)) ctx.fillRect(Math.floor(m(e.x+cc*c)),Math.floor(m(e.y+r*c)),Math.ceil(m(c)),Math.ceil(m(c))); }
+  }
+  ctx.restore();
+}
+function pdfSheet(doc, lay){
+  for(const e of lay.it){
+    const col=e.c||"#000000";
+    if(e.t==="rect"){ if(e.fill){ doc.setFillColor(0,0,0); doc.rect(e.x,e.y,e.w,e.h,"F"); } else { doc.setDrawColor(col); doc.setLineWidth(e.lw); doc.rect(e.x,e.y,e.w,e.h,"S"); } }
+    else if(e.t==="circle"){ doc.setDrawColor(col); doc.setLineWidth(e.lw); doc.circle(e.x,e.y,e.r,"S"); }
+    else if(e.t==="line"){ doc.setDrawColor(col); doc.setLineWidth(e.lw); doc.line(e.x1,e.y1,e.x2,e.y2); }
+    else if(e.t==="text"){ doc.setFont("helvetica",e.b?"bold":"normal"); doc.setFontSize(e.s); doc.setTextColor(col); doc.text(e.txt,e.x,e.y,{align:e.al||"left"}); }
+    else if(e.t==="qr"){ const q=qrMatrix(e.data), c=e.size/q.n; doc.setFillColor(0,0,0); for(let r=0;r<q.n;r++) for(let cc=0;cc<q.n;cc++) if(q.dark(r,cc)) doc.rect(e.x+cc*c,e.y+r*c,c+0.02,c+0.02,"F"); }
+  }
+}
+
+/* --- visão computacional: marcadores, homografia, bolhas --- */
+function homografia(src,dst){
+  const A=[],b=[];
+  for(let i=0;i<4;i++){ const [x,y]=src[i],[u,v]=dst[i]; A.push([x,y,1,0,0,0,-u*x,-u*y]); b.push(u); A.push([0,0,0,x,y,1,-v*x,-v*y]); b.push(v); }
+  for(let c=0;c<8;c++){ let p=c; for(let r=c+1;r<8;r++) if(Math.abs(A[r][c])>Math.abs(A[p][c])) p=r; [A[c],A[p]]=[A[p],A[c]]; [b[c],b[p]]=[b[p],b[c]];
+    for(let r=0;r<8;r++){ if(r===c) continue; const f=A[r][c]/A[c][c]; for(let k=c;k<8;k++) A[r][k]-=f*A[c][k]; b[r]-=f*b[c]; } }
+  return b.map((v,i)=>v/A[i][i]);
+}
+const aplicaH=(h,x,y)=>{ const w=h[6]*x+h[7]*y+1; return [(h[0]*x+h[1]*y+h[2])/w,(h[3]*x+h[4]*y+h[5])/w]; };
+function analisarFoto(img){
+  const {width:W,height:H,data}=img, N=W*H, g=new Float32Array(N);
+  for(let i=0;i<N;i++) g[i]=0.299*data[i*4]+0.587*data[i*4+1]+0.114*data[i*4+2];
+  const W1=W+1, I=new Float64Array(W1*(H+1));
+  for(let y=0;y<H;y++){ let row=0; for(let x=0;x<W;x++){ row+=g[y*W+x]; I[(y+1)*W1+x+1]=I[y*W1+x+1]+row; } }
+  const R=Math.max(8,Math.round(Math.min(W,H)/14)), bin=new Uint8Array(N);
+  for(let y=0;y<H;y++){ const y0=Math.max(0,y-R), y1=Math.min(H,y+R+1);
+    for(let x=0;x<W;x++){ const x0=Math.max(0,x-R), x1=Math.min(W,x+R+1);
+      const s=I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0], mean=s/((x1-x0)*(y1-y0)), v=g[y*W+x];
+      bin[y*W+x]= (v<mean*0.72 && v<165) ? 1:0; } }
+  const lab=new Int32Array(N), st=new Int32Array(N), comps=[]; let nl=0;
+  for(let i=0;i<N;i++){ if(!bin[i]||lab[i]) continue; nl++; let sp=0; st[sp++]=i; lab[i]=nl; let mnx=1e9,mxx=-1,mny=1e9,mxy=-1,cnt=0,sx=0,sy=0;
+    while(sp){ const k=st[--sp], x=k%W, y=(k/W)|0; cnt++; sx+=x; sy+=y; if(x<mnx)mnx=x; if(x>mxx)mxx=x; if(y<mny)mny=y; if(y>mxy)mxy=y;
+      if(x>0&&bin[k-1]&&!lab[k-1]){lab[k-1]=nl;st[sp++]=k-1;} if(x<W-1&&bin[k+1]&&!lab[k+1]){lab[k+1]=nl;st[sp++]=k+1;}
+      if(y>0&&bin[k-W]&&!lab[k-W]){lab[k-W]=nl;st[sp++]=k-W;} if(y<H-1&&bin[k+W]&&!lab[k+W]){lab[k+W]=nl;st[sp++]=k+W;} }
+    const w=mxx-mnx+1,h=mxy-mny+1; comps.push({w,h,cnt,cx:sx/cnt,cy:sy/cnt}); }
+  const md=Math.min(W,H);
+  const cand=comps.filter(c=>c.w>=8&&c.h>=8&&c.w>md*0.012&&c.w<md*0.11&&c.h<md*0.11&&c.w/c.h>0.6&&c.w/c.h<1.65&&c.cnt/(c.w*c.h)>0.82);
+  if(cand.length<4) return {ok:false,g,bin,W,H};
+  const pick=f=>cand.reduce((a,c)=>f(c)>f(a)?c:a);
+  const TL=pick(c=>-(c.cx+c.cy)), TR=pick(c=>c.cx-c.cy), BL=pick(c=>c.cy-c.cx), BR=pick(c=>c.cx+c.cy);
+  const pts=[TL,TR,BL,BR]; if(new Set(pts).size<4) return {ok:false,g,bin,W,H};
+  const d=(a,b)=>Math.hypot(a.cx-b.cx,a.cy-b.cy), top=d(TL,TR), bot=d(BL,BR), lef=d(TL,BL), rig=d(TR,BR);
+  const ratio=(lef+rig)/(top+bot);
+  if(ratio<1.2||ratio>1.85||top/bot<0.7||top/bot>1.43||lef/rig<0.7||lef/rig>1.43) return {ok:false,g,bin,W,H};
+  const sizes=pts.map(c=>(c.w+c.h)/2), avg=sizes.reduce((a,b)=>a+b)/4;
+  if(sizes.some(s=>s<avg*0.55||s>avg*1.7)) return {ok:false,g,bin,W,H};
+  const h=homografia(MARCAS, pts.map(c=>[c.cx,c.cy]));
+  return {ok:true,h,g,bin,W,H};
+}
+function lerBolhas(an, lay, p){
+  const fr={};
+  for(const b of lay.bubbles){ let n=0,dk=0;
+    for(let dy=-1.9;dy<=1.9;dy+=0.3) for(let dx=-1.9;dx<=1.9;dx+=0.3){ if(dx*dx+dy*dy>3.61) continue; const [u,v]=aplicaH(an.h,b.x+dx,b.y+dy); const ui=Math.round(u), vi=Math.round(v); if(ui<0||vi<0||ui>=an.W||vi>=an.H) continue; n++; dk+=an.bin[vi*an.W+ui]; }
+    (fr[b.q] ||= [])[b.j]= n? dk/n : 0; }
+  return p.objetivas.map((q,i)=>{ const f=fr[i]||[]; const idx=f.map((v,j)=>[v,j]).sort((a,b)=>b[0]-a[0]); const [m1,j1]=idx[0]||[0,0], m2=idx[1]?.[0]||0;
+    if(m1<0.12) return {marcada:-1,leitura:"ok"};
+    if(m1>=0.3 && m2>=0.3 && m2>m1*0.6) return {marcada:-2,leitura:"duvidosa"};
+    return {marcada:j1, leitura:(m1>=0.3 && m1-m2>=0.2)?"ok":"duvidosa"}; });
+}
+function warpCanvas(src, h, x0,y0,w,hh,ppm){
+  const ow=Math.round(w*ppm), oh=Math.round(hh*ppm), c=document.createElement("canvas"); c.width=ow; c.height=oh;
+  const ctx=c.getContext("2d"), out=ctx.createImageData(ow,oh), sd=src.data, SW=src.width, SH=src.height;
+  for(let j=0;j<oh;j++) for(let i=0;i<ow;i++){ const [u,v]=aplicaH(h,x0+(i+0.5)/ppm,y0+(j+0.5)/ppm); const ui=Math.min(SW-1,Math.max(0,Math.round(u))), vi=Math.min(SH-1,Math.max(0,Math.round(v))); const s=(vi*SW+ui)*4, o=(j*ow+i)*4; out.data[o]=sd[s]; out.data[o+1]=sd[s+1]; out.data[o+2]=sd[s+2]; out.data[o+3]=255; }
+  ctx.putImageData(out,0,0); return c;
+}
+const canvasBlob=(c,q=0.85)=>new Promise(r=>c.toBlob(r,"image/jpeg",q));
+
+/* --- foto de exemplo (simula a folha preenchida e fotografada) --- */
+function perfilSimulado(p, idx){
+  if(p.id==="pv1") return SIM_SEED[idx%3];
+  const r=idx%3;
+  return {obj:p.objetivas.map((q,i)=> r===0?q.correta : r===1?(i%2?q.correta:(q.correta+1)%q.alternativas.length) : (q.correta+1+i)%q.alternativas.length),
+    diss:p.dissertativas.map(q=>{ const w=(q.resposta_esperada||"").split(/\s+/); return r===0? w.slice(0,28).join(" ") : r===1? w.slice(0,10).join(" ").toLowerCase() : "não lembro direito"; })};
+}
+async function fotoExemplo(p, aluno, idx){
+  await Promise.all([loadScript(LIB_QR), document.fonts.load("30px Caveat").catch(()=>{})]);
+  const t=turmaById(p.turmaId), lay=sheetLayout(p,aluno,t), ppm=5, sh=document.createElement("canvas"); sh.width=210*ppm; sh.height=297*ppm;
+  const ctx=sh.getContext("2d"); drawSheet(ctx,lay,ppm);
+  const per=perfilSimulado(p,idx), rnd=(a,b)=>a+Math.random()*(b-a);
+  per.obj.forEach((j,i)=>{ const b=lay.bubbles.find(x=>x.q===i&&x.j===j); if(!b) return; ctx.fillStyle="rgba(22,28,70,0.92)"; ctx.beginPath(); ctx.ellipse(b.x*ppm+rnd(-1.5,1.5),b.y*ppm+rnd(-1.5,1.5),2.5*ppm,2.3*ppm,rnd(0,1),0,Math.PI*2); ctx.fill(); });
+  ctx.fillStyle="#1d2a6e"; ctx.font=`${5.6*ppm}px Caveat, cursive`; ctx.textAlign="left";
+  lay.boxes.forEach((bx,k)=>{ const txt=per.diss[k]||""; const maxw=(bx.w-10)*ppm; const words=txt.split(" "); const lines=[]; let l="";
+    for(const w of words){ const tst=l?l+" "+w:w; if(ctx.measureText(tst).width>maxw && l){ lines.push(l); l=w; } else l=tst; } if(l) lines.push(l);
+    lines.forEach((ln,li)=>{ const y=(bx.y+9+li*8-1.3)*ppm; if(y>(bx.y+bx.h-1)*ppm) return; ctx.save(); ctx.translate((bx.x+4+rnd(0,2))*ppm,y); ctx.rotate(rnd(-0.012,0.012)); ctx.fillText(ln,0,0); ctx.restore(); }); });
+  const out=document.createElement("canvas"); out.width=1400; out.height=1900; const o=out.getContext("2d");
+  const bg=o.createLinearGradient(0,0,1400,1900); bg.addColorStop(0,"#7a6650"); bg.addColorStop(1,"#4f4032"); o.fillStyle=bg; o.fillRect(0,0,1400,1900);
+  o.save(); o.translate(700,950); o.rotate(rnd(-0.05,0.05)); o.shadowColor="rgba(0,0,0,0.45)"; o.shadowBlur=30; const sc=1.16; o.drawImage(sh,-sh.width*sc/2,-sh.height*sc/2,sh.width*sc,sh.height*sc); o.restore();
+  const lg=o.createLinearGradient(0,0,1400,1900); lg.addColorStop(0,"rgba(255,255,255,0.06)"); lg.addColorStop(1,"rgba(0,0,0,0.18)"); o.fillStyle=lg; o.fillRect(0,0,1400,1900);
+  return await canvasBlob(out,0.88);
+}
+
+/* --- IA --- */
+async function iaComImagens(){ if(!sampleFn) return null; try{ const l=await sampleFn.limits(); return l?.images ? l.images : null; }catch(e){ return null; } }
+function blocoCriterios(p){ const n=p.objetivas.length; return p.dissertativas.map((q,i)=>`QUESTÃO ${n+i+1} (vale ${fmtN(ptsDiss(q))} pontos)
+Enunciado: ${q.enunciado}
+Resposta esperada pelo professor: ${q.resposta_esperada||"(não informada)"}
+Critérios de nota:
+${(q.criterios||[]).map(c=>`- ${c.descricao} (${fmtN(+c.pontos)} ponto${+c.pontos===1?"":"s"})`).join("\n")}`).join("\n\n"); }
+const FORMATO_DISS=`"respostas":[{"questao":6,"transcricao":"texto exatamente como o aluno escreveu","legibilidade":"boa"|"dificil"|"ilegivel","criterios":[{"descricao":"...","avaliacao":"sim"|"parcial"|"nao","pontos":1}],"nota_sugerida":1.5,"justificativa":"uma frase curta para o professor"}]`;
+const REGRAS_DISS=`Para cada questão dissertativa:
+1. Transcreva EXATAMENTE o que o aluno escreveu, mantendo os erros de ortografia. Palavras que você não conseguir ler: escreva [?]. Nunca invente o que não está escrito.
+2. Avalie SOMENTE pelos critérios do professor. Erros de português não tiram ponto. Aceite outras palavras se o sentido estiver correto.
+3. Para cada critério diga "sim", "parcial" ou "nao" e os pontos dados (parcial vale no máximo metade do critério).
+4. nota_sugerida = soma dos pontos dos critérios. Se a letra estiver ilegível demais para avaliar com segurança, use legibilidade "ilegivel" e nota_sugerida null.
+5. Resposta em branco: transcricao "", nota_sugerida 0.`;
+function promptRecortes(p,t){ const n=p.objetivas.length; return `Você é professor(a) de ${t.disciplina} do ${t.serie} corrigindo a prova "${p.titulo}". As imagens anexas são recortes das respostas MANUSCRITAS de um único aluno, na ordem: ${p.dissertativas.map((_,i)=>`imagem ${i+1} = questão ${n+i+1}`).join(", ")}.
+
+${blocoCriterios(p)}
+
+${REGRAS_DISS}
+
+Responda SOMENTE com JSON: {${FORMATO_DISS}}`; }
+function promptFolhaInteira(p,t){ const n=p.objetivas.length; return `Você é professor(a) de ${t.disciplina} do ${t.serie} corrigindo a prova "${p.titulo}". A imagem é a foto de uma folha de respostas preenchida à mão por um aluno.
+
+${n?`PARTE 1 · OBJETIVAS: questões 1 a ${n}. Para cada uma, diga qual alternativa (${LETRAS.slice(0,Math.max(...p.objetivas.map(q=>q.alternativas.length)))}) foi pintada; null se nenhuma; "multipla" se mais de uma.`:""}
+
+${p.dissertativas.length?`PARTE 2 · DISSERTATIVAS:\n${blocoCriterios(p)}\n\n${REGRAS_DISS}`:""}
+
+Leia também o nome do aluno escrito no cabeçalho, se houver.
+Responda SOMENTE com JSON: {"nome_aluno":"...","marcadas":[{"questao":1,"alternativa":"B"}],${FORMATO_DISS}}`; }
+function normalizarDiss(p, resp){
+  const n=p.objetivas.length, arr=Array.isArray(resp?.respostas)?resp.respostas:[];
+  return p.dissertativas.map((q,i)=>{ const r=arr.find(x=>+x.questao===n+i+1) || arr[i] || {}; const max=ptsDiss(q);
+    let nota = r.nota_sugerida==null||r.nota_sugerida==="" ? null : Math.min(max,Math.max(0,+r.nota_sugerida));
+    if(nota!=null && isNaN(nota)) nota=null;
+    return {transcricao:String(r.transcricao??""), legibilidade:r.legibilidade||"boa", criterios:Array.isArray(r.criterios)?r.criterios:[], nota_sugerida:nota, nota_final:null, justificativa:r.justificativa||"", comentario:""}; });
+}
+
+/* --- fila de correção --- */
+async function processarFotos(provaId, files){
+  for(const f of files) fila.push({id:"f"+Math.random().toString(36).slice(2), provaId, blob:f, nome:f.name||"foto", estado:"Na fila", ativo:false});
+  render(); if(processarFotos.rodando) return; processarFotos.rodando=true;
+  try{ while(fila.some(x=>!x.fim)){ const item=fila.find(x=>!x.fim); item.ativo=true; try{ await processarItem(item); }catch(e){ item.estado="Não foi possível ler esta foto: "+(e?.message||"erro"); item.erro=true; } item.fim=true; item.ativo=false; render(); } }
+  finally{ processarFotos.rodando=false; setTimeout(()=>{ for(let i=fila.length-1;i>=0;i--) if(fila[i].fim&&!fila[i].erro) fila.splice(i,1); if(S.ui.view==="provas") render(); },4000); }
+}
+function setEstado(item,txt){ item.estado=txt; const el=document.querySelector(`[data-fila="${item.id}"] span`); if(el) el.textContent=txt; else if(S.ui.view==="provas") render(); }
+async function processarItem(item){
+  const p=provaById(item.provaId), t=turmaById(p.turmaId);
+  setEstado(item,"Lendo a foto…");
+  await loadScript(LIB_JSQR);
+  const bmp=await createImageBitmap(item.blob); const sc=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+  const cv=document.createElement("canvas"); cv.width=Math.round(bmp.width*sc); cv.height=Math.round(bmp.height*sc);
+  const cx=cv.getContext("2d"); cx.drawImage(bmp,0,0,cv.width,cv.height); const img=cx.getImageData(0,0,cv.width,cv.height);
+  const an=analisarFoto(img);
+  let alunoId=null, sheetURL=null;
+  const lerQR=(c)=>{ const d=c.getContext("2d").getImageData(0,0,c.width,c.height); const r=jsQR(d.data,c.width,c.height,{inversionAttempts:"dontInvert"}); if(r&&r.data.startsWith("EDU|")){ const [,pid,aid]=r.data.split("|"); if(pid===p.id && t.alunos.some(a=>a.id===aid)) return aid; } return null; };
+  if(an.ok){ const sheet=warpCanvas(img,an.h,0,0,210,297,3); sheetURL=sheet.toDataURL("image/jpeg",0.7); alunoId=lerQR(warpCanvas(img,an.h,152,9,42,42,9)); }
+  if(!alunoId){ try{ alunoId=lerQR(cv); }catch(e){} }
+  const lay=sheetLayout(p,null,t);
+  let objs=null, crops=[];
+  if(an.ok){ objs=lerBolhas(an,lay,p); crops=lay.boxes.map(b=>warpCanvas(img,an.h,b.x-1,b.y-1,b.w+2,b.h+2,5)); }
+  if(!alunoId){ setEstado(item,"Aguardando: de qual aluno é esta folha?"); alunoId=await perguntarAluno(p, sheetURL||cv.toDataURL("image/jpeg",0.6)); if(!alunoId) throw new Error("aluno não informado"); }
+  const al=alunoById(alunoId); item.nome=al.nome;
+  const key=`${p.id}|${alunoId}`;
+  await imgPut(key+"|foto", cv.toDataURL("image/jpeg",0.7)); if(sheetURL) await imgPut(key+"|folha", sheetURL);
+  for(let i=0;i<crops.length;i++) await imgPut(key+"|d"+i, crops[i].toDataURL("image/jpeg",0.8));
+  const res={alunoId, status:"revisar", quando:new Date().toISOString(), modo:an.ok?"folha":"ia", objetivas:objs||p.objetivas.map(()=>({marcada:-1,leitura:"ia"})), dissertativas:p.dissertativas.map(()=>({transcricao:"",nota_sugerida:null,nota_final:null,criterios:[],justificativa:"",comentario:"",legibilidade:null})), aviso:null};
+  const precisaIA = p.dissertativas.length>0 || !an.ok;
+  if(precisaIA){
+    const imgLim=await iaComImagens();
+    if(!sampleFn && p.id==="pv1" && item.perfil!=null && an.ok){
+      setEstado(item,`${al.nome}: IA avaliando as dissertativas…`); await espera(2200);
+      res.dissertativas=normalizarDiss(p,{respostas:SIM_CORRECAO[item.perfil]});
+    }
+    else if(!imgLim){ res.aviso = sampleFn ? "A IA não pôde receber imagens nesta visualização. Avalie as dissertativas olhando os recortes." : "A IA não está disponível nesta visualização. Avalie as dissertativas olhando os recortes."; if(!an.ok) res.aviso="Não foi possível localizar os quatro quadrados pretos e a IA não está disponível. Corrija manualmente olhando a foto."; }
+    else{
+      setEstado(item,`${al.nome}: IA lendo ${an.ok?"as respostas dissertativas":"a folha inteira"}…`);
+      try{
+        if(an.ok){
+          const blobs=await Promise.all(crops.map(c=>canvasBlob(c,0.85)));
+          let respostas=[];
+          for(let s=0;s<blobs.length;s+=imgLim.maxCount){ const part=p.dissertativas.slice(s,s+imgLim.maxCount);
+            const pseudo={...p, dissertativas:part}; pseudo.objetivas=new Array(p.objetivas.length+s).fill({pontos:0,alternativas:[]});
+            const r=await sampleFn.json(promptRecortes(pseudo,t),{images:blobs.slice(s,s+imgLim.maxCount),cache:false}); respostas=respostas.concat(Array.isArray(r?.respostas)?r.respostas:[]); }
+          res.dissertativas=normalizarDiss(p,{respostas});
+        } else {
+          const r=await sampleFn.json(promptFolhaInteira(p,t),{images:[await canvasBlob(cv,0.85)],cache:false});
+          res.dissertativas=normalizarDiss(p,r);
+          const mk=Array.isArray(r?.marcadas)?r.marcadas:[];
+          res.objetivas=p.objetivas.map((q,i)=>{ const m=mk.find(x=>+x.questao===i+1); const a=m?.alternativa; if(a==null||a==="") return {marcada:-1,leitura:"ia"}; if(String(a).toLowerCase().startsWith("mult")) return {marcada:-2,leitura:"ia"}; const j=LETRAS.indexOf(String(a).trim().toUpperCase()[0]); return {marcada:j>=0?j:-1,leitura:"ia"}; });
+          res.aviso="Os quatro quadrados pretos não apareceram na foto, então a IA leu a folha inteira, inclusive as objetivas. Confira com atenção.";
+        }
+      }catch(e){ res.aviso=(ERROS[e?.code]||"A IA não conseguiu ler as respostas desta vez.")+" Avalie as dissertativas olhando os recortes."; }
+    }
+  }
+  resultadosDe(p.id)[alunoId]=res; S.ui.rvAluno=alunoId; save();
+  setEstado(item,`${al.nome}: pronta para revisão`);
+}
+function perguntarAluno(p, url){
+  const t=turmaById(p.turmaId), feitos=resultadosDe(p.id);
+  return new Promise(res=>{
+    $("#modal-root").innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="Identificar aluno"><div class="modal-card small-modal"><div class="modal-bar"><h3>De qual aluno é esta folha?</h3></div>
+    <div class="modal-body"><p style="margin:0" class="sub">O código da folha não foi reconhecido. Escolha o aluno.</p><img src="${url}" alt="Foto enviada" style="width:100%;border-radius:8px;border:1px solid var(--line)">
+    <select class="select" id="pa-sel">${t.alunos.map(a=>`<option value="${a.id}">${esc(a.nome)}${feitos[a.id]?" (já corrigida)":""}</option>`).join("")}</select>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="pa-no">Descartar foto</button><button class="btn primary" id="pa-ok">Confirmar</button></div></div></div></div>`;
+    $("#pa-ok").onclick=()=>{ const v=$("#pa-sel").value; closeModal(); res(v); };
+    $("#pa-no").onclick=()=>{ closeModal(); res(null); };
+  });
+}
+
+/* --- leitura da prova pela IA (cadastro) --- */
+function promptLerProva(t, texto){ return `Você é professor(a) de ${t.disciplina} do ${t.serie}. Abaixo está o texto de uma prova. Organize-a para correção.
+
+- Separe as questões objetivas (com alternativas) das dissertativas, na ordem em que aparecem.
+- Objetivas: "alternativas" sem as letras; "correta" é o índice (0 = A). Se a prova não indicar o gabarito, resolva você e marque "gabarito_ia": true.
+- Dissertativas: escreva a "resposta_esperada" (1 a 3 frases) e de 2 a 3 "criterios" objetivos de correção com pontos (use múltiplos de 0,5). Se a prova indicar o valor da questão, distribua esse valor entre os critérios; senão, use 2 pontos no total.
+- Objetivas valem 1 ponto, a menos que a prova diga outro valor.
+- "titulo": nome curto da prova.
+
+Responda SOMENTE com JSON:
+{"titulo":"...","objetivas":[{"enunciado":"...","alternativas":["...","...","...","..."],"correta":0,"gabarito_ia":false,"pontos":1}],"dissertativas":[{"enunciado":"...","resposta_esperada":"...","criterios":[{"descricao":"...","pontos":1}]}]}
+
+TEXTO DA PROVA:
+"""
+${texto.slice(0,50000)}
+"""`; }
+function openNovaProva(turmaId){
+  const t=turmaById(turmaId);
+  $("#modal-root").innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="Nova prova"><div class="modal-card small-modal" style="width:min(560px,100%)">
+    <div class="modal-bar"><h3>Nova prova · ${esc(t.nome)} · ${esc(t.disciplina)}</h3></div>
+    <form class="modal-body" id="form-prova">
+      <div class="field"><label for="np-data">Data da prova</label><input id="np-data" type="date" value="2026-11-05" required></div>
+      <div class="field"><label for="np-arq">Arquivo da prova (PDF, Word ou texto)</label><input id="np-arq" type="file" accept=".pdf,.docx,.txt,.md"><div class="h">A IA lê as questões e propõe gabarito e critérios. Você revisa antes de aplicar.</div></div>
+      <div class="field"><label for="np-txt">Ou cole o texto da prova</label><textarea id="np-txt" rows="5" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)" placeholder="1) Qual organela...&#10;a) ... b) ...&#10;2) Explique..."></textarea></div>
+      <div id="np-status" class="sub" style="font-size:14px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn" id="close-mdl">Cancelar</button><button type="button" class="btn" id="np-branco">Criar em branco</button><button class="btn primary" type="submit" id="np-ler">Ler a prova com IA</button></div>
+    </form></div></div>`;
+  const nova=(extra)=>{ const id="pv"+Date.now(); S.provas.push({id,turmaId,titulo:"Nova prova",data:$("#np-data").value,origem:"",objetivas:[],dissertativas:[],...extra}); S.ui.provaId=id; S.ui.provaStep="questoes"; save(); closeModal(); render(); };
+  $("#np-branco").onclick=()=>nova({titulo:`Avaliação de ${t.disciplina}`,objetivas:[{enunciado:"",alternativas:["","","",""],correta:0,pontos:1}],dissertativas:[{enunciado:"",resposta_esperada:"",criterios:[{descricao:"",pontos:1}]}]});
+  $("#form-prova").onsubmit=async ev=>{ ev.preventDefault(); const st=$("#np-status"), btn=$("#np-ler");
+    let texto=$("#np-txt").value.trim(); const f=$("#np-arq").files[0];
+    try{ btn.disabled=true;
+      if(f){ st.textContent="Lendo o arquivo…"; texto=(await extrairTexto(f)).trim(); }
+      if(texto.split(/\s+/).length<15) throw new Error("Envie o arquivo da prova ou cole o texto dela.");
+      if(!sampleFn) throw new Error(SITE?"No site de demonstração a IA está desligada. Use \"Criar em branco\" e digite as questões, ou abra a prova de exemplo.":"A IA não está disponível nesta visualização. Use \"Criar em branco\" e digite as questões.");
+      st.innerHTML=`<span style="display:inline-flex;gap:8px;align-items:center"><span class="spin"></span>A IA está lendo a prova e propondo gabarito e critérios. Leva de 20 a 60 segundos.</span>`;
+      const r=await sampleFn.json(promptLerProva(t,texto),{cache:false});
+      const objetivas=(r.objetivas||[]).map(q=>({enunciado:String(q.enunciado||""),alternativas:(q.alternativas||[]).slice(0,5).map(String),correta:Math.max(0,Math.min((q.alternativas||[]).length-1,parseInt(q.correta)||0)),pontos:+q.pontos||1,iaGabarito:!!q.gabarito_ia}));
+      const dissertativas=(r.dissertativas||[]).map(q=>({enunciado:String(q.enunciado||""),resposta_esperada:String(q.resposta_esperada||""),criterios:(q.criterios||[]).map(c=>({descricao:String(c.descricao||""),pontos:+c.pontos||0.5})),iaCriterios:true}));
+      if(!objetivas.length && !dissertativas.length) throw new Error("A IA não encontrou questões neste texto.");
+      nova({titulo:r.titulo||`Avaliação de ${t.disciplina}`,origem:f?f.name:"Texto colado",objetivas:objetivas.slice(0,12),dissertativas:dissertativas.slice(0,4)});
+      toast("Prova lida. Confira o gabarito e os critérios.");
+    }catch(e){ st.textContent=e?.code?(ERROS[e.code]||"A IA não conseguiu ler a prova. Tente de novo."):(e.message||"Erro ao ler a prova."); btn.disabled=false; }
+  };
+}
+
+/* --- PDFs --- */
+async function baixarFolhas(p, btn){
+  const t=turmaById(p.turmaId); btn.disabled=true; const old=btn.textContent; btn.textContent="Gerando PDF…";
+  try{ await Promise.all([loadScript(LIB_JSPDF),loadScript(LIB_QR)]);
+    const doc=new jspdf.jsPDF({unit:"mm",format:"a4"}); t.alunos.forEach((al,i)=>{ if(i) doc.addPage(); pdfSheet(doc,sheetLayout(p,al,t)); });
+    await salvarArquivo(`Folhas_de_resposta_${slug(t.nome)}_${slug(p.titulo).slice(0,40)}.pdf`,doc.output("blob")); toast("PDF salvo.");
+  }catch(e){ if(e?.code!=="declined") toast("Não foi possível gerar o PDF."); } finally{ btn.disabled=false; btn.textContent=old; }
+}
+async function baixarCaderno(p, btn){
+  const t=turmaById(p.turmaId), prof=profById(t.profId); btn.disabled=true; const old=btn.textContent; btn.textContent="Gerando PDF…";
+  try{ await loadScript(LIB_JSPDF); const doc=new jspdf.jsPDF({unit:"mm",format:"a4"}); let y=20;
+    const wr=(txt,size,bold,ind=0,gap=1.5)=>{ doc.setFont("helvetica",bold?"bold":"normal"); doc.setFontSize(size); const lines=doc.splitTextToSize(txt,180-ind); const lh=size*0.42; if(y+lines.length*lh>282){ doc.addPage(); y=20; } doc.text(lines,15+ind,y); y+=lines.length*lh+gap; };
+    wr(S.config.escola.toUpperCase(),9,true); wr(p.titulo,15,true,0,2); wr(`${t.nome} · ${t.disciplina} · Prof(a). ${prof.nome} · ${fmtData(p.data)} · Valor: ${fmtN(totalProva(p))} pontos`,9,false,0,4);
+    wr("Responda na FOLHA DE RESPOSTAS. Nas objetivas, pinte totalmente o círculo. Nas dissertativas, escreva dentro do quadro da questão.",9,false,0,6);
+    p.objetivas.forEach((q,i)=>{ wr(`${i+1}. ${q.enunciado} (${fmtN(+q.pontos)} pt)`,10.5,true,0,1); q.alternativas.forEach((a,j)=>wr(`(${LETRAS[j]}) ${a}`,10,false,5,0.6)); y+=3; });
+    p.dissertativas.forEach((q,i)=>{ wr(`${p.objetivas.length+i+1}. ${q.enunciado} (${fmtN(ptsDiss(q))} pts)`,10.5,true,0,4); });
+    await salvarArquivo(`Prova_${slug(t.nome)}_${slug(p.titulo).slice(0,40)}.pdf`,doc.output("blob")); toast("PDF salvo.");
+  }catch(e){ if(e?.code!=="declined") toast("Não foi possível gerar o PDF."); } finally{ btn.disabled=false; btn.textContent=old; }
+}
+
+/* --- telas --- */
+function viewProvas(){
+  const prof=profById(S.ui.profId), turmas=S.turmas.filter(t=>t.profId===prof.id);
+  let p=provaById(S.ui.provaId); if(!p||!turmas.some(t=>t.id===p.turmaId)){ p=S.provas.find(x=>turmas.some(t=>t.id===x.turmaId)); S.ui.provaId=p?.id; }
+  const side=`<aside class="panel"><div class="side-sec"><label class="label" for="prof-sel">Professor(a) conectado(a)</label>
+    <select class="select" id="prof-sel" style="margin-top:6px">${S.professores.map(x=>`<option value="${x.id}" ${x.id===prof.id?"selected":""}>${esc(x.nome)} · ${esc(x.disc)}</option>`).join("")}</select></div>
+    <div class="side-sec">${turmas.map(t=>`<div class="turma">${esc(t.nome)} <span>· ${esc(t.disciplina)}</span></div>
+      ${S.provas.filter(x=>x.turmaId===t.id).map(x=>{ const rs=Object.values(resultadosDe(x.id)), c=rs.filter(r=>r.status==="confirmada").length;
+        return `<button class="prova-list-item" data-prova="${x.id}" aria-current="${x.id===p?.id}"><div style="font-weight:600;font-size:14px">${esc(x.titulo)}</div><div class="pills"><span class="pill">${fmtData(x.data)}</span>${rs.length?`<span class="pill ${c===t.alunos.length?"ok":"warn"}">${c}/${t.alunos.length} notas confirmadas</span>`:`<span class="pill">Não corrigida</span>`}</div></button>`; }).join("")}
+      <button class="btn small ghost" data-novaprova="${t.id}" style="margin:2px 0 8px">+ Nova prova em ${esc(t.nome)}</button>`).join("")}</div></aside>`;
+  if(!p) return `<div class="layout">${side}<div class="stack">${mobPick("prova",prof,turmas,null)}<div class="panel panel-b">Nenhuma prova ainda. Crie a primeira com "+ Nova prova".</div></div></div>`;
+  const t=turmaById(p.turmaId), step=S.ui.provaStep||"questoes";
+  const steps=[["questoes","1. Questões e critérios"],["folhas","2. Folhas de resposta"],["corrigir","3. Corrigir por foto"]];
+  const body= step==="questoes"?stepQuestoes(p): step==="folhas"?stepFolhas(p,t): stepCorrigir(p,t);
+  return `<div class="demo-note"><b>Como funciona:</b> o professor cadastra a prova e confere o gabarito e os critérios. O sistema imprime uma folha de respostas por aluno, com código. Depois o professor fotografa as folhas: as objetivas são corrigidas automaticamente, a IA lê e avalia as dissertativas, e o professor dá a palavra final.</div>
+  <div class="layout">${side}<div class="stack">${mobPick("prova",prof,turmas,p)}
+    <div class="aula-head"><div style="flex:1;min-width:240px"><div class="label">${esc(t.nome)} · ${esc(t.disciplina)} · ${fmtData(p.data)}</div><h1>${esc(p.titulo)}</h1>
+      <div class="sub">${p.objetivas.length} objetivas · ${p.dissertativas.length} dissertativas · vale <b id="prova-total">${fmtN(totalProva(p))}</b> pontos</div></div></div>
+    <nav class="steptabs" aria-label="Etapas da prova">${steps.map(([k,l])=>`<button class="steptab" data-step="${k}" aria-current="${k===step}">${l}</button>`).join("")}</nav>
+    ${body}</div></div>`;
+}
+function stepQuestoes(p){
+  const n=p.objetivas.length;
+  const obj=p.objetivas.map((q,i)=>`<div class="qcard"><div class="qh"><b>Questão ${i+1}</b><span class="pill">Objetiva</span>${q.iaGabarito?`<span class="pill warn">Gabarito sugerido pela IA · confira</span>`:""}<div class="spacer"></div>
+      <label class="sub" style="font-size:13px" for="pts-o${i}">Vale</label><input type="number" class="ptsin" id="pts-o${i}" min="0" step="0.25" value="${q.pontos}" data-pq="o|${i}|pontos"><button class="btn small ghost" data-delobj="${i}" aria-label="Remover questão ${i+1}">Remover</button></div>
+    <textarea data-pq="o|${i}|enunciado" aria-label="Enunciado da questão ${i+1}" placeholder="Enunciado">${esc(q.enunciado)}</textarea>
+    ${q.alternativas.map((a,j)=>`<div class="alt-row"><input type="radio" name="cor-${i}" data-cor="${i}|${j}" ${q.correta===j?"checked":""} aria-label="Alternativa ${LETRAS[j]} é a correta"><b>${LETRAS[j]}</b><input type="text" data-pq="o|${i}|alt|${j}" value="${esc(a)}" aria-label="Alternativa ${LETRAS[j]}"></div>`).join("")}
+    <div class="sub" style="font-size:12.5px">Marque o círculo da alternativa correta.</div></div>`).join("");
+  const dis=p.dissertativas.map((q,i)=>`<div class="qcard"><div class="qh"><b>Questão ${n+i+1}</b><span class="pill ac">Dissertativa</span>${q.iaCriterios?`<span class="pill warn">Critérios sugeridos pela IA · confira</span>`:""}<div class="spacer"></div><span class="sub" style="font-size:13px">Vale <b data-dtot="${i}">${fmtN(ptsDiss(q))}</b></span><button class="btn small ghost" data-deldis="${i}" aria-label="Remover questão ${n+i+1}">Remover</button></div>
+    <textarea data-pq="d|${i}|enunciado" aria-label="Enunciado" placeholder="Enunciado">${esc(q.enunciado)}</textarea>
+    <label class="label" for="re-${i}">Resposta esperada</label><textarea id="re-${i}" data-pq="d|${i}|resposta_esperada">${esc(q.resposta_esperada)}</textarea>
+    <div class="label">Critérios de nota (a IA corrige só por eles)</div>
+    ${q.criterios.map((c,k)=>`<div class="crit-row"><input type="text" data-pq="d|${i}|crit|${k}|descricao" value="${esc(c.descricao)}" aria-label="Critério ${k+1}" placeholder="O que o aluno precisa dizer"><input type="number" class="ptsin" min="0" step="0.25" data-pq="d|${i}|crit|${k}|pontos" value="${c.pontos}" aria-label="Pontos do critério ${k+1}"><button class="btn small ghost" data-delcrit="${i}|${k}" aria-label="Remover critério">×</button></div>`).join("")}
+    <div><button class="btn small" data-addcrit="${i}">+ Critério</button></div></div>`).join("");
+  return `<section class="panel"><div class="panel-h"><h2>Questões, gabarito e critérios</h2><span class="sub" style="font-size:13px">${p.origem?`Lida de ${esc(p.origem)}. `:""}As alterações são salvas automaticamente.</span></div>
+  <div class="panel-b stack">${obj}${dis}
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-addobj="1">+ Questão objetiva</button><button class="btn" data-adddis="1">+ Questão dissertativa</button><div class="spacer"></div><button class="btn primary" data-step="folhas">Próximo: folhas de resposta</button></div></div></section>`;
+}
+function stepFolhas(p,t){
+  return `<section class="panel"><div class="panel-h"><h2>Folhas de resposta</h2><span class="sub" style="font-size:13px">Uma folha por aluno, já com o nome e o código.</span></div>
+  <div class="panel-b folhas-grid">
+    <canvas id="sheet-prev" class="sheet-prev" width="630" height="891" aria-label="Prévia da folha de respostas"></canvas>
+    <div class="stack" style="gap:12px">
+      <div class="how"><div><b>Quadrados pretos</b>Nos quatro cantos. Servem para o sistema endireitar a foto.</div><div><b>Código QR</b>Identifica a prova e o aluno, sem digitar nada.</div><div><b>Círculos</b>As objetivas são lidas pelo próprio sistema, sem custo de IA.</div><div><b>Quadros</b>Cada resposta dissertativa vai para a IA separada.</div></div>
+      ${podeBaixar()?`<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" data-dlfolhas="${p.id}">Baixar folhas de resposta (${t.alunos.length} alunos)</button><button class="btn" data-dlcaderno="${p.id}">Baixar caderno de questões</button></div>`:`<div class="alert warn">O download de PDF não está disponível nesta visualização. Abra a demonstração pelo Claude para baixar.</div>`}
+      <p class="sub" style="margin:0;font-size:14px">Para testar de verdade: imprima a folha de um aluno, preencha à mão e fotografe na etapa 3. Para demonstrar sem imprimir, use a foto de exemplo na etapa 3.</p>
+      <div><button class="btn" data-step="corrigir">Próximo: corrigir por foto</button></div>
+    </div></div></section>`;
+}
+function stepCorrigir(p,t){
+  const rs=resultadosDe(p.id), tot=totalProva(p);
+  const filaP=fila.filter(f=>f.provaId===p.id);
+  let sel=S.ui.rvAluno && rs[S.ui.rvAluno] ? S.ui.rvAluno : (Object.keys(rs)[0]||null);
+  const lista=t.alunos.map(al=>{ const r=rs[al.id]; const nt=r?notaDe(p,r):null;
+    const chip=!r?`<span class="pill">Sem foto</span>`: r.status==="confirmada"?`<span class="pill ok">Confirmada</span>`:`<span class="pill warn">Revisar</span>`;
+    return `<button class="rv-item" data-rvaluno="${al.id}" aria-current="${al.id===sel}" ${r?"":"disabled style='opacity:.65;cursor:default'"}><span>${esc(al.nome)}<br>${chip}</span><span class="nt">${r?fmtN(nt.t):""}</span></button>`; }).join("");
+  const conf=Object.values(rs).filter(r=>r.status==="confirmada").length;
+  return `<section class="panel"><div class="panel-h"><h2>Enviar fotos</h2><span class="pill ${conf===t.alunos.length?"ok":""}">${conf} de ${t.alunos.length} notas confirmadas</span></div>
+    <div class="panel-b"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <label class="btn primary" for="foto-in">Fotografar folhas</label><input type="file" id="foto-in" class="sr" accept="image/*" capture="environment" multiple data-fotos="${p.id}">
+      <button class="btn" data-simular="${p.id}">Usar foto de exemplo (sem imprimir)</button>
+      <span class="sub" style="font-size:13px">No celular, abre a câmera. Dá para enviar várias folhas de uma vez.</span></div>
+      ${filaP.length?`<div class="fila">${filaP.map(f=>`<div data-fila="${f.id}">${f.fim?(f.erro?"⚠":"✓"):`<span class="spin"></span>`}<span>${esc(f.estado)}</span></div>`).join("")}</div>`:""}
+    </div></section>
+  ${Object.keys(rs).length?`<section class="panel"><div class="panel-h"><h2>Revisão do professor</h2><span class="sub" style="font-size:13px">A nota só vale depois que você confirma.</span></div>
+    <div class="mob-rv"><label class="label" for="mob-rv-sel">Aluno</label><select class="select" id="mob-rv-sel">${t.alunos.filter(a=>rs[a.id]).map(a=>{ const r=rs[a.id]; return `<option value="${a.id}" ${a.id===sel?"selected":""}>${esc(a.nome)} · ${fmtN(notaDe(p,r).t)} · ${r.status==="confirmada"?"confirmada":"revisar"}</option>`; }).join("")}</select></div>
+    <div class="rev" style="padding:0"><div class="rv-list" style="border-right:1px solid var(--line)">${lista}</div><div class="rv-detail" style="padding:16px">${sel?revisao(p,t,sel):""}</div></div></section>`:""}`;
+}
+function marcaTxt(m){ return m===-1?"Em branco":m===-2?"Mais de uma":LETRAS[m]; }
+function realcar(s){ return esc(s).replace(/\[\?\]/g,'<mark title="Trecho que a IA não conseguiu ler">[?]</mark>'); }
+function revisao(p,t,alunoId){
+  const r=resultadosDe(p.id)[alunoId], al=alunoById(alunoId), nt=notaDe(p,r), key=`${p.id}|${alunoId}`, n=p.objetivas.length, done=r.status==="confirmada";
+  const atn=[]; if(r.objetivas.some(o=>o.leitura==="duvidosa")) atn.push("marcação duvidosa"); if(r.dissertativas.some(d=>d.legibilidade==="ilegivel"||d.legibilidade==="dificil")) atn.push("letra difícil"); if(nt.pend) atn.push("dissertativa sem nota");
+  const objRows=p.objetivas.map((q,i)=>{ const o=r.objetivas[i]; const ok=o.marcada===q.correta;
+    return `<tr><td>${i+1}</td><td><select data-rvobj="${i}" aria-label="Marcação da questão ${i+1}" ${done?"disabled":""}>${[...q.alternativas.map((_,j)=>j),-1,-2].map(v=>`<option value="${v}" ${o.marcada===v?"selected":""}>${marcaTxt(v)}</option>`).join("")}</select></td>
+      <td>${LETRAS[q.correta]}</td><td>${o.leitura==="duvidosa"?'<span class="pill warn">Confira</span>':o.leitura==="ia"?'<span class="pill ac">Lida pela IA</span>':o.leitura==="professor"?'<span class="pill">Ajustada</span>':'<span class="pill ok">Leitura automática</span>'}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">${ok?`<span style="color:var(--ok);font-weight:700">+${fmtN(+q.pontos)}</span>`:`<span class="sub">0</span>`}</td></tr>`; }).join("");
+  const dis=p.dissertativas.map((q,i)=>{ const d=r.dissertativas[i]; const max=ptsDiss(q); const att=d.legibilidade==="ilegivel"||d.legibilidade==="dificil"||d.nota_sugerida==null;
+    return `<div class="dcard ${att&&!done?"attn":""}"><div class="qh" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-family:var(--font-display)">Questão ${n+i+1}</b><span class="sub" style="font-size:13px">vale ${fmtN(max)}</span>
+        ${d.legibilidade==="ilegivel"?'<span class="pill bad">Letra ilegível para a IA</span>':d.legibilidade==="dificil"?'<span class="pill warn">Letra difícil</span>':d.legibilidade?'<span class="pill ok">Letra legível</span>':""}</div>
+      <div class="sub" style="font-size:13.5px">${esc(q.enunciado)}</div>
+      ${r.modo==="folha"?`<img class="crop" data-img="${key}|d${i}" alt="Resposta manuscrita da questão ${n+i+1}">`:""}
+      ${d.transcricao||d.legibilidade?`<div><div class="label" style="margin-bottom:4px">O que a IA leu</div><div class="transc">${d.transcricao?realcar(d.transcricao):'<span class="sub">(em branco)</span>'}</div></div>`:""}
+      ${d.criterios?.length?`<ul class="crit-list">${d.criterios.map(c=>`<li><span>${esc(c.descricao)}</span>${c.avaliacao==="sim"?'<span class="pill ok">Atendeu</span>':c.avaliacao==="parcial"?'<span class="pill warn">Parcial</span>':'<span class="pill bad">Não atendeu</span>'}<span style="font-variant-numeric:tabular-nums;font-weight:600">${fmtN(+c.pontos)}</span></li>`).join("")}</ul>`:""}
+      ${d.justificativa?`<div style="font-size:14px"><b>Sugestão da IA:</b> ${esc(d.justificativa)}</div>`:""}
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <div><label class="label" for="nota-${i}">Nota</label><div style="display:flex;gap:6px;align-items:center"><input class="nota-in" type="number" id="nota-${i}" min="0" max="${max}" step="0.25" value="${d.nota_final??d.nota_sugerida??""}" placeholder="—" data-rvnota="${i}" ${done?"disabled":""}><span class="sub">de ${fmtN(max)}</span></div>
+          <div class="sub" style="font-size:12px;margin-top:2px">${d.nota_sugerida!=null?`IA sugeriu ${fmtN(d.nota_sugerida)}`:"Sem sugestão da IA"}</div></div>
+        <div style="flex:1;min-width:200px"><label class="label" for="com-${i}">Comentário para o aluno (opcional)</label><input type="text" id="com-${i}" style="width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface)" value="${esc(d.comentario||"")}" data-rvcom="${i}" ${done?"disabled":""}></div></div></div>`; }).join("");
+  return `<div class="stack" style="gap:14px">
+    <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+      <img class="thumb" data-img="${key}|${r.modo==="folha"?"folha":"foto"}" alt="Folha fotografada" data-zoom="${key}|${r.modo==="folha"?"folha":"foto"}">
+      <div style="flex:1;min-width:200px"><h2 style="font-size:20px">${esc(al.nome)}</h2><div class="sub" style="font-size:13px">${al.matricula} · enviada ${fmtQuando(r.quando)}</div>
+        <div class="bigtotal" style="margin-top:6px">${fmtN(nt.t)} <span class="sub" style="font-size:16px;font-weight:600">de ${fmtN(totalProva(p))}</span></div>
+        <div class="sub" style="font-size:13px">Objetivas ${fmtN(nt.o)} · Dissertativas ${fmtN(nt.d)}${nt.pend?" · falta nota":""}</div>
+        <div class="pills" style="margin-top:6px">${done?'<span class="pill ok">Nota confirmada pelo professor</span>':atn.length?atn.map(a=>`<span class="pill warn">Atenção: ${a}</span>`).join(""):'<span class="pill ok">Sem pontos de atenção</span>'}</div></div></div>
+    ${r.aviso?`<div class="alert warn">${esc(r.aviso)}</div>`:""}
+    ${n?`<div><div class="label" style="margin-bottom:6px">Objetivas · corrigidas automaticamente</div><div class="scroll-x"><table class="objtab"><thead><tr><th>Questão</th><th>Marcou</th><th>Gabarito</th><th>Leitura</th><th style="text-align:right">Pontos</th></tr></thead><tbody>${objRows}</tbody></table></div></div>`:""}
+    ${p.dissertativas.length?`<div class="label">Dissertativas · avaliadas pela IA, nota final sua</div>${dis}`:""}
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px"><div style="flex:1"><b>Nota final: ${fmtN(nt.t)}</b></div>
+      ${done?`<button class="btn" data-reabrir="${alunoId}">Reabrir para ajustar</button>`:`<button class="btn primary" data-confirmar="${alunoId}" ${nt.pend?"disabled title='Dê nota a todas as dissertativas'":""}>Confirmar nota</button>`}</div>
+  </div>`;
+}
+async function hydrateProvas(){
+  document.querySelectorAll("img[data-img]").forEach(async im=>{ const v=await imgGet(im.dataset.img); if(v) im.src=v; else im.alt="Imagem não disponível neste navegador"; });
+  const c=document.getElementById("sheet-prev");
+  if(c){ try{ await loadScript(LIB_QR); const p=provaById(S.ui.provaId), t=turmaById(p.turmaId); drawSheet(c.getContext("2d"),sheetLayout(p,t.alunos[0],t),3); }catch(e){} }
+}
+function abrirZoom(k){ imgGet(k).then(v=>{ if(!v) return; $("#modal-root").innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="Foto da folha"><div class="modal-card"><div class="modal-bar"><h3>Folha enviada</h3><div class="spacer"></div><button class="btn small" id="close-mdl">Fechar</button></div><div class="modal-body" style="background:var(--surface)"><img src="${v}" alt="Folha enviada" style="width:100%"></div></div></div>`; }); }
+
+document.addEventListener("click", ev=>{
+  const el=ev.target.closest("button,img[data-zoom]"); if(!el) return; const d=el.dataset;
+  if(d.zoom){ abrirZoom(d.zoom); return; }
+  if(d.prova){ S.ui.provaId=d.prova; S.ui.rvAluno=null; save(); render(); return; }
+  if(d.step){ S.ui.provaStep=d.step; save(); render(); window.scrollTo(0,0); return; }
+  if(d.novaprova){ openNovaProva(d.novaprova); return; }
+  const p=provaById(S.ui.provaId);
+  if(d.addobj){ p.objetivas.push({enunciado:"",alternativas:["","","",""],correta:0,pontos:1}); save(); render(); return; }
+  if(d.adddis){ p.dissertativas.push({enunciado:"",resposta_esperada:"",criterios:[{descricao:"",pontos:1}]}); save(); render(); return; }
+  if(d.delobj){ p.objetivas.splice(+d.delobj,1); save(); render(); return; }
+  if(d.deldis){ p.dissertativas.splice(+d.deldis,1); save(); render(); return; }
+  if(d.addcrit){ p.dissertativas[+d.addcrit].criterios.push({descricao:"",pontos:0.5}); save(); render(); return; }
+  if(d.delcrit){ const [i,k]=d.delcrit.split("|").map(Number); p.dissertativas[i].criterios.splice(k,1); save(); render(); return; }
+  if(d.dlfolhas){ baixarFolhas(provaById(d.dlfolhas),el); return; }
+  if(d.dlcaderno){ baixarCaderno(provaById(d.dlcaderno),el); return; }
+  if(d.rvaluno){ S.ui.rvAluno=d.rvaluno; save(); render(); return; }
+  if(d.confirmar){ const r=resultadosDe(p.id)[d.confirmar]; r.status="confirmada"; r.confirmadaEm=new Date().toISOString(); save(); toast("Nota confirmada e lançada no boletim.");
+    const t=turmaById(p.turmaId), rs=resultadosDe(p.id), prox=t.alunos.find(a=>rs[a.id]&&rs[a.id].status!=="confirmada"); if(prox) S.ui.rvAluno=prox.id; render(); return; }
+  if(d.reabrir){ resultadosDe(p.id)[d.reabrir].status="revisar"; save(); render(); return; }
+  if(d.simular){ (async()=>{ const pr=provaById(d.simular), t=turmaById(pr.turmaId), rs=resultadosDe(pr.id); const emFila=new Set(fila.filter(f=>!f.fim).map(f=>f.alunoAlvo));
+      const idx=t.alunos.findIndex(a=>!rs[a.id]&&!emFila.has(a.id)); if(idx<0){ toast("Todos os alunos já têm folha enviada."); return; }
+      el.disabled=true; try{ const blob=await fotoExemplo(pr,t.alunos[idx],idx); blob.name="foto-exemplo.jpg"; const f=new File([blob],`foto_exemplo_${slug(t.alunos[idx].nome)}.jpg`,{type:"image/jpeg"}); processarFotos(pr.id,[f]); fila[fila.length-1].alunoAlvo=t.alunos[idx].id; if(pr.id==="pv1") fila[fila.length-1].perfil=idx%3; }
+      catch(e){ toast("Não foi possível montar a foto de exemplo."); } finally{ el.disabled=false; } })(); return; }
+});
+document.addEventListener("input", ev=>{
+  const el=ev.target, d=el.dataset; const p=provaById(S.ui.provaId); if(!p) return;
+  if(d.pq){ const [tp,i,f,a,b]=d.pq.split("|"); const q=(tp==="o"?p.objetivas:p.dissertativas)[+i];
+    if(f==="alt") q.alternativas[+a]=el.value; else if(f==="crit") q.criterios[+a][b]= b==="pontos"?(+el.value||0):el.value; else q[f]= f==="pontos"?(+el.value||0):el.value;
+    save();
+    const tt=document.getElementById("prova-total"); if(tt) tt.textContent=fmtN(totalProva(p));
+    if(tp==="d"){ const dt=document.querySelector(`[data-dtot="${i}"]`); if(dt) dt.textContent=fmtN(ptsDiss(q)); }
+    return; }
+  if(d.rvcom!=null && d.rvcom!==""){ const r=resultadosDe(p.id)[S.ui.rvAluno]; r.dissertativas[+d.rvcom].comentario=el.value; save(); return; }
+});
+document.addEventListener("change", ev=>{
+  const el=ev.target, d=el.dataset; const p=provaById(S.ui.provaId);
+  if(el.id==="prof-sel-m"){ S.ui.profId=el.value; S.ui.aulaId=null; S.ui.provaId=null; if(run&&(run.done||run.error)) run=null; save(); render(); return; }
+  if(el.id==="mob-aula"){ S.ui.aulaId=el.value; if(run && run.aulaId!==el.value && (run.done||run.error)) run=null; save(); render(); return; }
+  if(el.id==="mob-prova"){ S.ui.provaId=el.value; S.ui.rvAluno=null; save(); render(); return; }
+  if(el.id==="mob-rv-sel"){ S.ui.rvAluno=el.value; save(); render(); return; }
+  if(d.cor){ const [i,j]=d.cor.split("|").map(Number); p.objetivas[i].correta=j; p.objetivas[i].iaGabarito=false; save(); render(); return; }
+  if(d.fotos){ const files=[...el.files]; el.value=""; if(files.length) processarFotos(d.fotos,files); return; }
+  if(d.rvobj!=null && d.rvobj!==""){ const r=resultadosDe(p.id)[S.ui.rvAluno]; r.objetivas[+d.rvobj]={marcada:+el.value,leitura:"professor"}; save(); render(); return; }
+  if(d.rvnota!=null && d.rvnota!==""){ const r=resultadosDe(p.id)[S.ui.rvAluno]; const max=ptsDiss(p.dissertativas[+d.rvnota]); let v=el.value===""?null:Math.min(max,Math.max(0,+el.value)); r.dissertativas[+d.rvnota].nota_final=v; save(); render(); return; }
+});
+
+/* ================== EVENTOS ================== */
+document.addEventListener("click", ev=>{
+  const el=ev.target.closest("button,[data-goto]"); if(!el) return;
+  const d=el.dataset;
+  if(d.view){ S.ui.view=d.view; save(); render(); window.scrollTo(0,0); return; }
+  if(d.goto){ S.ui.view=d.goto; save(); render(); window.scrollTo(0,0); return; }
+  if(d.aula && el.classList.contains("aula-item")){ S.ui.aulaId=d.aula; if(run && run.aulaId!==d.aula && (run.done||run.error)) run=null; save(); render(); return; }
+  if(d.pres){ const a=aulaById(S.ui.aulaId); a.chamada[d.pres]=d.v; save(); render(); return; }
+  if(d.todos){ const a=aulaById(d.todos); Object.keys(a.chamada).forEach(k=>a.chamada[k]="P"); save(); render(); return; }
+  if(d.salvar){ salvarChamada(d.salvar); return; }
+  if(d.nova){ openNovaAula(d.nova); return; }
+  if(d.preview){ openPreview(d.preview,null,null); return; }
+  if(d.email){ S.ui.emailId=d.email; save(); render(); return; }
+  if(d.abrir){ const [eid,aid]=d.abrir.split("|"); const e=S.emails.find(x=>x.id===eid); openPreview(e.aulaId,aid,eid); return; }
+  if(el.id==="stop"){ run?.ctl?.abort(); return; }
+  if(el.id==="close-mdl"){ closeModal(); return; }
+  if(el.id==="dl-pdf"){ baixarPDF(d.aula,d.aluno||null,el); return; }
+  if(el.id==="mk-imp"){ const e=S.emails.find(x=>x.id===d.e); e.impressos[d.a]=!e.impressos[d.a]; save(); el.textContent=e.impressos[d.a]?"Desmarcar impresso":"Marcar como impresso"; render(); toast(e.impressos[d.a]?"Marcado como impresso.":"Marcação removida."); return; }
+  if(el.id==="reset"){ $("#modal-root").innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="modal-card small-modal"><div class="modal-bar"><h3>Reiniciar a demonstração?</h3></div><div class="modal-body"><p style="margin:0">Volta tudo ao estado inicial: aulas, chamadas, apostilas geradas e e-mails.</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="close-mdl">Cancelar</button><button class="btn primary" id="do-reset">Reiniciar</button></div></div></div></div>`; return; }
+  if(el.id==="do-reset"){ run?.ctl?.abort(); run=null; fila.length=0; imgClear(); S=seed(); save(); closeModal(); render(); toast("Demonstração reiniciada."); return; }
+});
+document.addEventListener("click", ev=>{ if(ev.target.classList?.contains("modal")) closeModal(); });
+document.addEventListener("keydown", ev=>{ if(ev.key==="Escape") closeModal(); });
+document.addEventListener("change", ev=>{
+  const el=ev.target;
+  if(el.id==="prof-sel"){ S.ui.profId=el.value; S.ui.aulaId=null; if(run&&(run.done||run.error)) run=null; save(); render(); return; }
+  if(el.dataset.upload){ onUpload(el.dataset.upload, el.files[0]); return; }
+  if(el.dataset.cf){ const k=el.dataset.cf; let v=el.value; if(k==="objetivas"||k==="dissertativas") v=+v; if(k==="gabarito") v=v==="1"; S.config[k]=v; save(); if(k!=="escola"&&k!=="emailSecretaria") render(); else $("#escola-nome").textContent=S.config.escola; toast("Configuração salva."); }
+});
+document.addEventListener("dragover", ev=>{ const z=ev.target.closest("[data-drop]"); if(z){ ev.preventDefault(); z.classList.add("over"); } });
+document.addEventListener("dragleave", ev=>{ const z=ev.target.closest("[data-drop]"); if(z) z.classList.remove("over"); });
+document.addEventListener("drop", ev=>{ const z=ev.target.closest("[data-drop]"); if(z){ ev.preventDefault(); onUpload(z.dataset.drop, ev.dataTransfer.files[0]); } });
+
+render();
+</script>
+</body>
+</html>
